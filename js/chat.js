@@ -3,37 +3,7 @@
 let currentSessionId    = null;
 let conversationHistory = [];
 let isStreaming         = false;
-let latestMinutes       = null;
-let activeSkillContext  = '';
-
-// ── SKILL MAP — keyword → folder name ────────────────────────────────────────
-const SKILL_MAP = {
-    campaign:   'Campaign Strategy',
-    youtube:    'Campaign Strategy',
-    tiktok:     'Campaign Strategy',
-    shorts:     'Campaign Strategy',
-    video:      'Campaign Strategy',
-    brand:      'Brand Voice',
-    voice:      'Brand Voice',
-    copy:       'Brand Voice',
-    tone:       'Brand Voice',
-    post:       'Brand Voice',
-    caption:    'Brand Voice',
-    aurion:     'Character Files',
-    jan:        'Character Files',
-    character:  'Character Files',
-    persona:    'Character Files',
-    falcon:     'Member Personas',
-    panther:    'Member Personas',
-    wolf:       'Member Personas',
-    lion:       'Member Personas',
-    member:     'Member Personas',
-    minutes:    'Boardroom Minutes',
-    session:    'Boardroom Minutes',
-    audit:      'Skills Library',
-    skill:      'Skills Library',
-    research:   'Skills Library',
-};
+let latestMinutesMeta   = null; // metadata from Supabase (no content)
 
 // ── SIDEBAR TOGGLE ────────────────────────────────────────────────────────────
 function toggleSidebar() {
@@ -63,14 +33,10 @@ async function newSession() {
 
     currentSessionId    = session.id;
     conversationHistory = [];
-    activeSkillContext  = '';
 
-    document.getElementById('sessionLabel').textContent =
-        'Session: ' + session.title;
+    document.getElementById('sessionLabel').textContent = 'Session: ' + session.title;
 
-    // Clear chat
-    const messages = document.getElementById('chatMessages');
-    messages.innerHTML = `
+    document.getElementById('chatMessages').innerHTML = `
         <div class="welcome-message">
             <p>Hey, Creative Captains! Caelum here,</p>
             <p>Ready when you are. What are we working on?</p>
@@ -78,10 +44,10 @@ async function newSession() {
         </div>
     `;
 
-    // Auto-load latest minutes into session
-    latestMinutes = await supabaseAPI.getLatestMinutes();
-    if (latestMinutes) {
-        showMinutesCard(latestMinutes);
+    // Load minutes metadata from Supabase — content fetched from R2 on demand
+    latestMinutesMeta = await supabaseAPI.getLatestMinutes();
+    if (latestMinutesMeta) {
+        showMinutesCard(latestMinutesMeta);
     } else {
         document.getElementById('minutesCard').style.display = 'none';
     }
@@ -98,92 +64,49 @@ function showMinutesCard(minutes) {
 
     document.getElementById('minutesCardTitle').textContent =
         `Session ${minutes.session_number} — ${minutes.title}`;
-
     document.getElementById('minutesCardMeta').textContent =
         `${date} · ${minutes.status === 'open' ? '● Open' : '✓ Closed'}`;
-
-    // Strip markdown for preview
-    const plain = minutes.content
-        .replace(/#{1,6}\s/g, '')
-        .replace(/\*\*/g, '')
-        .replace(/- \[ \]/g, '☐')
-        .replace(/- \[x\]/gi, '☑')
-        .replace(/^\s*[-*]\s/gm, '')
-        .trim();
-
     document.getElementById('minutesCardPreview').textContent =
-        plain.substring(0, 120) + (plain.length > 120 ? '…' : '');
+        'Caelum has read these minutes and is ready to continue.';
 }
 
-// ── MINUTES POPUP ─────────────────────────────────────────────────────────────
-function openMinutesPopup() {
-    if (!latestMinutes) return;
-
-    const date = new Date(latestMinutes.session_date).toLocaleDateString('en-GB', {
-        day: 'numeric', month: 'long', year: 'numeric'
-    });
+// ── MINUTES POPUP (fetches content from R2 via worker) ────────────────────────
+async function openMinutesPopup() {
+    if (!latestMinutesMeta) return;
 
     document.getElementById('minutesPopupTitle').textContent =
-        `Session ${latestMinutes.session_number} — ${latestMinutes.title}`;
-
+        `Session ${latestMinutesMeta.session_number} — ${latestMinutesMeta.title}`;
     document.getElementById('minutesPopupMeta').textContent =
-        `${date} · Status: ${latestMinutes.status}`;
+        new Date(latestMinutesMeta.session_date).toLocaleDateString('en-GB', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        }) + ' · ' + latestMinutesMeta.status;
 
-    // Render markdown beautifully
     document.getElementById('minutesPopupBody').innerHTML =
-        marked.parse(latestMinutes.content);
-
-    // Render checkboxes interactively
-    document.getElementById('minutesPopupBody')
-        .querySelectorAll('input[type="checkbox"]')
-        .forEach(cb => cb.setAttribute('disabled', 'true'));
+        '<p style="color:var(--text-muted);font-style:italic;">Loading minutes...</p>';
 
     document.getElementById('minutesPopupOverlay').classList.add('active');
     document.getElementById('minutesPopup').classList.add('active');
+
+    // Fetch content from R2 via worker
+    try {
+        const response = await fetch(`${WORKER_URL}/minutes/latest`);
+        const data     = await response.json();
+        if (data.content) {
+            document.getElementById('minutesPopupBody').innerHTML =
+                marked.parse(data.content);
+        } else {
+            document.getElementById('minutesPopupBody').innerHTML =
+                '<p style="color:var(--text-muted);font-style:italic;">No minutes content found in R2.</p>';
+        }
+    } catch (err) {
+        document.getElementById('minutesPopupBody').innerHTML =
+            '<p style="color:var(--text-muted);">Could not load minutes. Check Worker is deployed.</p>';
+    }
 }
 
 function closeMinutesPopup() {
     document.getElementById('minutesPopupOverlay').classList.remove('active');
     document.getElementById('minutesPopup').classList.remove('active');
-}
-
-// ── SKILL DETECTION ───────────────────────────────────────────────────────────
-async function detectAndLoadSkill(message) {
-    const lower = message.toLowerCase();
-    let matchedFolder = null;
-
-    for (const [keyword, folderName] of Object.entries(SKILL_MAP)) {
-        if (lower.includes(keyword)) {
-            matchedFolder = folderName;
-            break;
-        }
-    }
-
-    if (!matchedFolder) return '';
-
-    // Find the folder in Supabase
-    const folders = await supabaseAPI.getFolders();
-    const folder  = folders.find(f => f.name === matchedFolder);
-    if (!folder) return '';
-
-    // Fetch files from that folder
-    const files = await supabaseAPI.getFiles(folder.id);
-    if (!files.length) return '';
-
-    // Show skill indicator
-    showSkillIndicator(matchedFolder);
-
-    // Combine file contents as skill context
-    const skillText = files.map(f => `[${f.title}]\n${f.content}`).join('\n\n');
-    return `\n\n--- CAELUM SKILL LOADED: ${matchedFolder} ---\n${skillText.substring(0, 2000)}`;
-}
-
-function showSkillIndicator(skillName) {
-    const indicator = document.getElementById('skillIndicator');
-    const text      = document.getElementById('skillIndicatorText');
-    text.textContent = `Reading: ${skillName}`;
-    indicator.style.display = 'flex';
-    setTimeout(() => { indicator.style.display = 'none'; }, 4000);
 }
 
 // ── SEND MESSAGE ──────────────────────────────────────────────────────────────
@@ -202,15 +125,8 @@ async function sendMessage() {
     await supabaseAPI.saveMessage(currentSessionId, 'user', content);
     conversationHistory.push({ role: 'user', content });
 
-    // Detect skill and load context
-    const skillContext = await detectAndLoadSkill(content);
-
-    // Build minutes context
-    const minutesContext = latestMinutes
-        ? `\n\n--- BOARDROOM MINUTES (Session ${latestMinutes.session_number}) ---\n${latestMinutes.content.substring(0, 1500)}`
-        : '';
-
-    await streamCaelumResponse(minutesContext + skillContext);
+    // Worker handles all R2 context loading — brain, minutes, skill detection
+    await streamCaelumResponse();
 }
 
 // ── KEYBOARD HANDLER ──────────────────────────────────────────────────────────
@@ -222,10 +138,9 @@ function handleChatKeydown(event) {
 }
 
 // ── STREAM RESPONSE ───────────────────────────────────────────────────────────
-async function streamCaelumResponse(context = '') {
+async function streamCaelumResponse() {
     isStreaming = true;
-    const sendBtn = document.getElementById('sendBtn');
-    sendBtn.disabled = true;
+    document.getElementById('sendBtn').disabled = true;
 
     const messageEl = appendMessage('assistant', '');
     const bubble    = messageEl.querySelector('.message-bubble');
@@ -235,15 +150,16 @@ async function streamCaelumResponse(context = '') {
 
     try {
         const response = await fetch(`${WORKER_URL}/chat`, {
-            method: 'POST',
+            method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                messages: conversationHistory,
-                minutesContext: context
-            })
+            body:    JSON.stringify({ messages: conversationHistory })
         });
 
         if (!response.ok) throw new Error(`Worker error: ${response.status}`);
+
+        // Show skill indicator if worker loaded a skill
+        const skill = response.headers.get('X-Caelum-Skill');
+        if (skill && skill !== 'none') showSkillIndicator(skill);
 
         const reader  = response.body.getReader();
         const decoder = new TextDecoder();
@@ -253,13 +169,10 @@ async function streamCaelumResponse(context = '') {
             if (done) break;
 
             const chunk = decoder.decode(value, { stream: true });
-            const lines = chunk.split('\n');
-
-            for (const line of lines) {
+            for (const line of chunk.split('\n')) {
                 if (!line.startsWith('data: ')) continue;
                 const data = line.slice(6).trim();
                 if (data === '[DONE]') break;
-
                 try {
                     const parsed = JSON.parse(data);
                     const delta  = parsed.delta?.text || '';
@@ -274,13 +187,13 @@ async function streamCaelumResponse(context = '') {
 
     } catch (err) {
         console.error('❌ Stream error:', err);
-        bubble.textContent = '⚠️ Check that WORKER_URL is set in config.js and the Worker is deployed.';
+        bubble.textContent = '⚠️ Check WORKER_URL in config.js and that the Worker is deployed.';
         fullResponse = bubble.textContent;
     }
 
     bubble.classList.remove('streaming');
-    isStreaming    = false;
-    sendBtn.disabled = false;
+    isStreaming = false;
+    document.getElementById('sendBtn').disabled = false;
 
     if (fullResponse) {
         conversationHistory.push({ role: 'assistant', content: fullResponse });
@@ -288,11 +201,20 @@ async function streamCaelumResponse(context = '') {
     }
 }
 
+// ── SKILL INDICATOR ───────────────────────────────────────────────────────────
+function showSkillIndicator(skillName) {
+    const indicator = document.getElementById('skillIndicator');
+    const text      = document.getElementById('skillIndicatorText');
+    const display   = skillName.charAt(0).toUpperCase() + skillName.slice(1);
+    text.textContent = `Reading: ${display}`;
+    indicator.style.display = 'flex';
+    setTimeout(() => { indicator.style.display = 'none'; }, 4000);
+}
+
 // ── UI HELPERS ────────────────────────────────────────────────────────────────
 function appendMessage(role, content) {
     const container = document.getElementById('chatMessages');
-
-    const welcome = container.querySelector('.welcome-message');
+    const welcome   = container.querySelector('.welcome-message');
     if (welcome) welcome.remove();
 
     const div = document.createElement('div');
