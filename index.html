@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3C Boardroom HQ</title>
+    <link rel="icon" type="image/png" href="public/favicon.png">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/bookshelf.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <script src="config.js"></script>
+</head>
+<body>
+
+    <!-- Watermark — above toolbar, right side -->
+    <div class="watermark">
+        Designed and Built with ❤️ by Claude (Anthropic) × Chef Anica · 3C Thread To Success™ Cooking Lab 🧪👨‍🍳
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <span class="header-crest">🌌</span>
+            <span class="header-title">3C Boardroom HQ</span>
+        </div>
+        <div class="header-right">
+            <span class="user-badge" id="userBadge">—</span>
+            <button class="btn-signout" onclick="supabaseAPI.signOut()" title="Sign Out">🚪</button>
+        </div>
+    </header>
+
+    <!-- Boardroom Main -->
+    <main class="boardroom">
+
+        <!-- Bookshelf Section -->
+        <section class="bookshelf-section">
+            <div class="section-label">📚 The Shelf</div>
+            <div class="bookshelf" id="bookshelf">
+                <!-- Folders rendered by bookshelf.js -->
+            </div>
+            <button class="btn-add-folder" onclick="showAddFolderModal()" title="Add Folder">+ New Folder</button>
+        </section>
+
+        <!-- Minutes Quick View -->
+        <section class="minutes-strip">
+            <div class="section-label">📋 Latest Minutes</div>
+            <div class="minutes-preview" id="minutesPreview">
+                <p class="empty-state">No minutes yet — start the first session.</p>
+            </div>
+            <button class="btn-new-minutes" onclick="showNewMinutesModal()">+ New Minutes</button>
+        </section>
+
+    </main>
+
+    <!-- Chat Toggle Button -->
+    <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleSidebar()">
+        <span class="chat-toggle-icon">🌌</span>
+        <span class="chat-toggle-label">Caelum</span>
+    </button>
+
+    <!-- ── Chat Sidebar ─────────────────────────────────────────────────── -->
+    <aside class="chat-sidebar" id="chatSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">
+                <span>🌌</span>
+                <div>
+                    <div class="sidebar-name">Caelum</div>
+                    <div class="sidebar-role">Chief Advisor</div>
+                </div>
+            </div>
+            <div class="sidebar-controls">
+                <button class="btn-new-session" onclick="newSession()" title="New Session">✦</button>
+                <button class="btn-close-sidebar" onclick="toggleSidebar()">✕</button>
+            </div>
+        </div>
+
+        <div class="session-label" id="sessionLabel">No active session</div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <p>Hey, Creative Captains!</p>
+                <p>Start a session and brief me. I'm ready.</p>
+                <p class="caelum-sign">— Caelum</p>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <textarea
+                id="chatInput"
+                class="chat-input"
+                placeholder="Brief Caelum..."
+                rows="2"
+                onkeydown="handleChatKeydown(event)"
+            ></textarea>
+            <button class="btn-send" onclick="sendMessage()" id="sendBtn">
+                ↑
+            </button>
+        </div>
+    </aside>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- ── Folder Modal ─────────────────────────────────────────────────── -->
+    <div class="modal" id="folderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="folderModalTitle">Folder</h2>
+                <button class="modal-close" onclick="closeFolderModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="file-list" id="fileList"></div>
+                <button class="btn-add-file" onclick="showAddFileForm()">+ Add File</button>
+                <div class="add-file-form" id="addFileForm" style="display:none;">
+                    <input type="text" id="newFileTitle" placeholder="File title..." class="form-input">
+                    <textarea id="newFileContent" placeholder="Content..." class="form-textarea" rows="6"></textarea>
+                    <div class="form-actions">
+                        <button class="btn-save" onclick="saveNewFile()">Save</button>
+                        <button class="btn-cancel" onclick="hideAddFileForm()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Add Folder Modal ─────────────────────────────────────────────── -->
+    <div class="modal" id="addFolderModal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>New Folder</h2>
+                <button class="modal-close" onclick="closeAddFolderModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="newFolderName" placeholder="Folder name..." class="form-input">
+                <input type="text" id="newFolderIcon" placeholder="Icon (emoji)" class="form-input" value="📁">
+                <div class="form-actions">
+                    <button class="btn-save" onclick="saveNewFolder()">Create</button>
+                    <button class="btn-cancel" onclick="closeAddFolderModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── New Minutes Modal ────────────────────────────────────────────── -->
+    <div class="modal" id="minutesModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>New Boardroom Minutes</h2>
+                <button class="modal-close" onclick="closeMinutesModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="minutesTitle" placeholder="Session title..." class="form-input">
+                <textarea id="minutesContent" placeholder="Minutes content (markdown supported)..." class="form-textarea" rows="12"></textarea>
+                <div class="form-actions">
+                    <button class="btn-save" onclick="saveMinutes()">Save Minutes</button>
+                    <button class="btn-cancel" onclick="closeMinutesModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── File View Modal ──────────────────────────────────────────────── -->
+    <div class="modal" id="fileViewModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2 id="fileViewTitle">File</h2>
+                <button class="modal-close" onclick="closeFileViewModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="fileViewContent" class="form-textarea" rows="16"></textarea>
+                <div class="form-actions">
+                    <button class="btn-save" onclick="saveFileEdit()">Save Changes</button>
+                    <button class="btn-danger" onclick="deleteCurrentFile()">Delete</button>
+                    <button class="btn-cancel" onclick="closeFileViewModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    <!-- Scripts -->
+    <script src="js/supabaseAPI.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/bookshelf.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>
