@@ -1,0 +1,19 @@
+name            = "caelum-boardroom-hq"
+main            = "worker.js"
+compatibility_date = "2024-01-01"
+
+# ── R2 BUCKET BINDING ─────────────────────────────────────────────────────────
+[[r2_buckets]]
+binding     = "BOARDROOM_BUCKET"
+bucket_name = "3c-boardroom-hq"
+
+# ── SECRETS (set via CLI — never put values here) ─────────────────────────────
+# wrangler secret put CLAUDE_API_KEY
+# wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+# wrangler secret put SUPABASE_URL
+
+# ── ROUTES (add your custom domain here when ready) ───────────────────────────
+# Uncomment and update when domain is confirmed:
+# [[routes]]
+# pattern = "boardroom.your-domain.com/*"
+# zone_name = "your-domain.com"
