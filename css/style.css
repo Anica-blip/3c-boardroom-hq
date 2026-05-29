@@ -156,45 +156,10 @@ body {
     opacity: 0.8;
 }
 
-/* ── MINUTES STRIP ─────────────────────────────────────────────────────────── */
-.minutes-strip {
-    margin-top: 2.5rem;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    backdrop-filter: blur(10px);
-    max-width: 760px;
-}
-
-.minutes-preview {
-    color: var(--text-secondary);
-    font-size: 0.88rem;
-    line-height: 1.7;
-    margin-bottom: 1rem;
-    min-height: 3rem;
-}
-
+/* Minutes now live in the sidebar — no strip on main page */
 .empty-state {
     color: var(--text-muted);
     font-style: italic;
-}
-
-.btn-new-minutes {
-    font-size: 0.8rem;
-    padding: 0.45rem 1rem;
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--purple-light);
-    cursor: pointer;
-    transition: all var(--transition);
-    letter-spacing: 0.04em;
-}
-
-.btn-new-minutes:hover {
-    background: var(--purple-glow);
-    border-color: var(--purple-light);
 }
 
 /* ── BUTTONS ───────────────────────────────────────────────────────────────── */
