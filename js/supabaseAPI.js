@@ -1,4 +1,4 @@
-// ─── 3C Boardroom HQ — Supabase API ──────────────────────────────────────────
+// ─── 3C Boardroom HQ — Supabase API (metadata only — content lives in R2) ────
 
 const supabaseAPI = (() => {
 
@@ -11,12 +11,11 @@ const supabaseAPI = (() => {
             provider: 'github',
             options: { redirectTo: window.location.origin + '/index.html' }
         });
-        if (error) console.error('❌ GitHub sign-in error:', error.message);
+        if (error) console.error('❌ GitHub sign-in:', error.message);
     }
 
     async function signOut() {
-        const { error } = await client.auth.signOut();
-        if (error) console.error('❌ Sign-out error:', error.message);
+        await client.auth.signOut();
         window.location.href = 'login.html';
     }
 
@@ -35,9 +34,8 @@ const supabaseAPI = (() => {
         const { data, error } = await client
             .from('caelum_sessions')
             .insert({ title })
-            .select()
-            .single();
-        if (error) { console.error('❌ Create session:', error.message); return null; }
+            .select().single();
+        if (error) { console.error('❌ createSession:', error.message); return null; }
         return data;
     }
 
@@ -47,16 +45,8 @@ const supabaseAPI = (() => {
             .select('*')
             .order('created_at', { ascending: false })
             .limit(20);
-        if (error) { console.error('❌ Get sessions:', error.message); return []; }
+        if (error) { console.error('❌ getSessions:', error.message); return []; }
         return data;
-    }
-
-    async function updateSessionTitle(id, title) {
-        const { error } = await client
-            .from('caelum_sessions')
-            .update({ title })
-            .eq('id', id);
-        if (error) console.error('❌ Update session title:', error.message);
     }
 
     // ── MESSAGES ─────────────────────────────────────────────────────────────
@@ -65,9 +55,8 @@ const supabaseAPI = (() => {
         const { data, error } = await client
             .from('caelum_messages')
             .insert({ session_id: sessionId, role, content })
-            .select()
-            .single();
-        if (error) { console.error('❌ Save message:', error.message); return null; }
+            .select().single();
+        if (error) { console.error('❌ saveMessage:', error.message); return null; }
         return data;
     }
 
@@ -77,40 +66,38 @@ const supabaseAPI = (() => {
             .select('*')
             .eq('session_id', sessionId)
             .order('created_at', { ascending: true });
-        if (error) { console.error('❌ Get messages:', error.message); return []; }
+        if (error) { console.error('❌ getMessages:', error.message); return []; }
         return data;
     }
 
-    // ── FOLDERS ──────────────────────────────────────────────────────────────
+    // ── FOLDERS (metadata + R2 prefix) ───────────────────────────────────────
 
     async function getFolders() {
         const { data, error } = await client
             .from('caelum_folders')
             .select('*')
             .order('sort_order', { ascending: true });
-        if (error) { console.error('❌ Get folders:', error.message); return []; }
+        if (error) { console.error('❌ getFolders:', error.message); return []; }
         return data;
     }
 
-    async function createFolder(name, icon = '📁', color = '#6B21A8') {
+    async function createFolder(name, icon = '📁', color = '#6B21A8', r2Prefix = '') {
         const { data, error } = await client
             .from('caelum_folders')
-            .insert({ name, icon, color })
-            .select()
-            .single();
-        if (error) { console.error('❌ Create folder:', error.message); return null; }
+            .insert({ name, icon, color, r2_prefix: r2Prefix })
+            .select().single();
+        if (error) { console.error('❌ createFolder:', error.message); return null; }
         return data;
     }
 
     async function deleteFolder(id) {
         const { error } = await client
             .from('caelum_folders')
-            .delete()
-            .eq('id', id);
-        if (error) console.error('❌ Delete folder:', error.message);
+            .delete().eq('id', id);
+        if (error) console.error('❌ deleteFolder:', error.message);
     }
 
-    // ── FILES ─────────────────────────────────────────────────────────────────
+    // ── FILES (metadata + R2 key — no content in Supabase) ───────────────────
 
     async function getFiles(folderId) {
         const { data, error } = await client
@@ -118,72 +105,68 @@ const supabaseAPI = (() => {
             .select('*')
             .eq('folder_id', folderId)
             .order('created_at', { ascending: false });
-        if (error) { console.error('❌ Get files:', error.message); return []; }
+        if (error) { console.error('❌ getFiles:', error.message); return []; }
         return data;
     }
 
-    async function createFile(folderId, title, content = '', fileType = 'note') {
+    async function createFile(folderId, title, r2Key = '', fileType = 'note') {
         const { data, error } = await client
             .from('caelum_files')
-            .insert({ folder_id: folderId, title, content, file_type: fileType })
-            .select()
-            .single();
-        if (error) { console.error('❌ Create file:', error.message); return null; }
+            .insert({ folder_id: folderId, title, r2_key: r2Key, file_type: fileType })
+            .select().single();
+        if (error) { console.error('❌ createFile:', error.message); return null; }
         return data;
     }
 
-    async function updateFile(id, title, content) {
+    async function updateFile(id, title, r2Key) {
         const { error } = await client
             .from('caelum_files')
-            .update({ title, content })
+            .update({ title, r2_key: r2Key })
             .eq('id', id);
-        if (error) console.error('❌ Update file:', error.message);
+        if (error) console.error('❌ updateFile:', error.message);
     }
 
     async function deleteFile(id) {
         const { error } = await client
             .from('caelum_files')
-            .delete()
-            .eq('id', id);
-        if (error) console.error('❌ Delete file:', error.message);
+            .delete().eq('id', id);
+        if (error) console.error('❌ deleteFile:', error.message);
     }
 
-    // ── MINUTES ──────────────────────────────────────────────────────────────
+    // ── MINUTES (metadata + R2 key — content lives in R2) ────────────────────
 
     async function getMinutes() {
         const { data, error } = await client
             .from('caelum_minutes')
-            .select('*')
+            .select('id, session_number, session_date, title, r2_key, status, created_at')
             .order('session_number', { ascending: false });
-        if (error) { console.error('❌ Get minutes:', error.message); return []; }
+        if (error) { console.error('❌ getMinutes:', error.message); return []; }
         return data;
     }
 
-    async function createMinutes(sessionNumber, sessionDate, title, content) {
+    async function createMinutes(sessionNumber, sessionDate, title, r2Key) {
         const { data, error } = await client
             .from('caelum_minutes')
-            .insert({ session_number: sessionNumber, session_date: sessionDate, title, content })
-            .select()
-            .single();
-        if (error) { console.error('❌ Create minutes:', error.message); return null; }
+            .insert({ session_number: sessionNumber, session_date: sessionDate, title, r2_key: r2Key })
+            .select().single();
+        if (error) { console.error('❌ createMinutes:', error.message); return null; }
         return data;
     }
 
-    async function updateMinutes(id, content, status) {
+    async function updateMinutes(id, r2Key, status) {
         const { error } = await client
             .from('caelum_minutes')
-            .update({ content, status })
+            .update({ r2_key: r2Key, status })
             .eq('id', id);
-        if (error) console.error('❌ Update minutes:', error.message);
+        if (error) console.error('❌ updateMinutes:', error.message);
     }
 
     async function getLatestMinutes() {
         const { data, error } = await client
             .from('caelum_minutes')
-            .select('*')
+            .select('id, session_number, session_date, title, r2_key, status')
             .order('session_number', { ascending: false })
-            .limit(1)
-            .single();
+            .limit(1).single();
         if (error) { return null; }
         return data;
     }
@@ -196,7 +179,6 @@ const supabaseAPI = (() => {
         onAuthStateChange,
         createSession,
         getSessions,
-        updateSessionTitle,
         saveMessage,
         getMessages,
         getFolders,
