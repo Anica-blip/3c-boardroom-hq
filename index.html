@@ -6,6 +6,7 @@
     <title>3C Boardroom HQ</title>
     <link rel="icon" type="image/png" href="public/favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/bookshelf.css">
     <link rel="stylesheet" href="css/sidebar.css">
@@ -33,33 +34,22 @@
     <!-- Boardroom Main -->
     <main class="boardroom">
 
-        <!-- Bookshelf Section -->
+        <!-- Bookshelf Section only — minutes live in the sidebar -->
         <section class="bookshelf-section">
             <div class="section-label">📚 The Shelf</div>
-            <div class="bookshelf" id="bookshelf">
-                <!-- Folders rendered by bookshelf.js -->
-            </div>
-            <button class="btn-add-folder" onclick="showAddFolderModal()" title="Add Folder">+ New Folder</button>
-        </section>
-
-        <!-- Minutes Quick View -->
-        <section class="minutes-strip">
-            <div class="section-label">📋 Latest Minutes</div>
-            <div class="minutes-preview" id="minutesPreview">
-                <p class="empty-state">No minutes yet — start the first session.</p>
-            </div>
-            <button class="btn-new-minutes" onclick="showNewMinutesModal()">+ New Minutes</button>
+            <div class="bookshelf" id="bookshelf"></div>
+            <button class="btn-add-folder" onclick="showAddFolderModal()">+ New Folder</button>
         </section>
 
     </main>
 
-    <!-- Chat Toggle Button -->
+    <!-- Chat Toggle Button — LEFT side -->
     <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleSidebar()">
         <span class="chat-toggle-icon">🌌</span>
         <span class="chat-toggle-label">Caelum</span>
     </button>
 
-    <!-- ── Chat Sidebar ─────────────────────────────────────────────────── -->
+    <!-- ── Chat Sidebar — LEFT ───────────────────────────────────────────── -->
     <aside class="chat-sidebar" id="chatSidebar">
         <div class="sidebar-header">
             <div class="sidebar-title">
@@ -77,6 +67,27 @@
 
         <div class="session-label" id="sessionLabel">No active session</div>
 
+        <!-- Minutes Card — auto-populated at session start -->
+        <div class="minutes-card" id="minutesCard" style="display:none;">
+            <div class="minutes-card-inner" onclick="openMinutesPopup()">
+                <div class="minutes-card-header">
+                    <span class="minutes-card-icon">📋</span>
+                    <div>
+                        <div class="minutes-card-title" id="minutesCardTitle">Latest Minutes</div>
+                        <div class="minutes-card-meta" id="minutesCardMeta"></div>
+                    </div>
+                    <span class="minutes-card-read">Read →</span>
+                </div>
+                <div class="minutes-card-preview" id="minutesCardPreview"></div>
+            </div>
+        </div>
+
+        <!-- Skill indicator — shown when Caelum loads a skill -->
+        <div class="skill-indicator" id="skillIndicator" style="display:none;">
+            <span class="skill-dot"></span>
+            <span id="skillIndicatorText">Loading skill...</span>
+        </div>
+
         <div class="chat-messages" id="chatMessages">
             <div class="welcome-message">
                 <p>Hey, Creative Captains!</p>
@@ -93,14 +104,29 @@
                 rows="2"
                 onkeydown="handleChatKeydown(event)"
             ></textarea>
-            <button class="btn-send" onclick="sendMessage()" id="sendBtn">
-                ↑
-            </button>
+            <button class="btn-send" onclick="sendMessage()" id="sendBtn">↑</button>
         </div>
     </aside>
 
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- ── Minutes Popup ─────────────────────────────────────────────────── -->
+    <div class="minutes-popup-overlay" id="minutesPopupOverlay" onclick="closeMinutesPopup()"></div>
+    <div class="minutes-popup" id="minutesPopup">
+        <div class="minutes-popup-header">
+            <div>
+                <div class="minutes-popup-title" id="minutesPopupTitle">Boardroom Minutes</div>
+                <div class="minutes-popup-meta" id="minutesPopupMeta"></div>
+            </div>
+            <button class="minutes-popup-close" onclick="closeMinutesPopup()">✕</button>
+        </div>
+        <div class="minutes-popup-body" id="minutesPopupBody"></div>
+        <div class="minutes-popup-footer">
+            <span class="minutes-popup-note">📖 Caelum has read these minutes</span>
+            <button class="btn-cancel" onclick="closeMinutesPopup()">Close</button>
+        </div>
+    </div>
 
     <!-- ── Folder Modal ─────────────────────────────────────────────────── -->
     <div class="modal" id="folderModal">
