@@ -12,14 +12,20 @@ function toggleSidebar() {
     const isOpen  = sidebar.classList.contains('open');
 
     if (isOpen) {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
+        minimizeSidebar();
     } else {
         sidebar.classList.add('open');
         overlay.classList.add('active');
         if (!currentSessionId) newSession();
         document.getElementById('chatInput').focus();
     }
+}
+
+// ── MINIMIZE — hide panel, keep session alive ─────────────────────────────────
+function minimizeSidebar() {
+    document.getElementById('chatSidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('active');
+    // Session stays in memory — conversationHistory and currentSessionId preserved
 }
 
 // ── SESSION MANAGEMENT ────────────────────────────────────────────────────────
@@ -31,23 +37,11 @@ async function newSession() {
     currentSessionId    = session.id;
     conversationHistory = [];
 
-    // Load latest minutes metadata
+    // Load latest minutes metadata from Supabase
     latestMinutesMeta = await supabaseAPI.getLatestMinutes();
 
-    // Update session label with minutes icon if minutes exist
-    const sessionLabel = document.getElementById('sessionLabel');
-    if (latestMinutesMeta) {
-        sessionLabel.innerHTML = `
-            <span>Session: ${session.title}</span>
-            <button class="minutes-icon-btn" onclick="openMinutesPopup()" title="View latest minutes">
-                📋 minutes
-            </button>
-        `;
-    } else {
-        sessionLabel.textContent = `Session: ${session.title}`;
-    }
+    document.getElementById('sessionLabel').textContent = `Session: ${session.title}`;
 
-    // Reset chat to personal Caelum greeting
     document.getElementById('chatMessages').innerHTML = `
         <div class="welcome-message">
             <p>Hey Chef. I'm here.</p>
@@ -57,14 +51,11 @@ async function newSession() {
     `;
 }
 
-// ── MINUTES POPUP (fetches content from R2 via worker) ────────────────────────
+// ── MINUTES POPUP ─────────────────────────────────────────────────────────────
 async function openMinutesPopup() {
-    if (!latestMinutesMeta && !document.getElementById('minutesPopup')) return;
-
     const popup   = document.getElementById('minutesPopup');
     const overlay = document.getElementById('minutesPopupOverlay');
 
-    // Set title and meta
     if (latestMinutesMeta) {
         const date = new Date(latestMinutesMeta.session_date).toLocaleDateString('en-GB', {
             day: 'numeric', month: 'long', year: 'numeric'
@@ -73,28 +64,29 @@ async function openMinutesPopup() {
             `Session ${latestMinutesMeta.session_number} — ${latestMinutesMeta.title}`;
         document.getElementById('minutesPopupMeta').textContent =
             `${date} · ${latestMinutesMeta.status}`;
+    } else {
+        document.getElementById('minutesPopupTitle').textContent = 'Boardroom Minutes';
+        document.getElementById('minutesPopupMeta').textContent = 'No sessions recorded yet';
     }
 
     document.getElementById('minutesPopupBody').innerHTML =
-        '<p style="color:var(--text-muted);font-style:italic;">Loading minutes...</p>';
+        '<p style="color:var(--text-muted);font-style:italic;padding:1rem 0;">Loading...</p>';
 
     overlay.classList.add('active');
     popup.classList.add('active');
 
-    // Fetch from R2 via worker
     try {
         const response = await fetch(`${WORKER_URL}/minutes/latest`);
         const data     = await response.json();
         if (data.content) {
-            document.getElementById('minutesPopupBody').innerHTML =
-                marked.parse(data.content);
+            document.getElementById('minutesPopupBody').innerHTML = marked.parse(data.content);
         } else {
             document.getElementById('minutesPopupBody').innerHTML =
-                '<p style="color:var(--text-muted);font-style:italic;">No minutes found in R2 yet. Add your first minutes file to <code>boardroom/minutes/</code></p>';
+                '<p style="color:var(--text-muted);font-style:italic;">No minutes yet. Add your first .md file to <code style="color:var(--purple-light)">boardroom/minutes/</code> in R2.</p>';
         }
     } catch {
         document.getElementById('minutesPopupBody').innerHTML =
-            '<p style="color:var(--text-muted);">Could not load minutes — check Worker is deployed.</p>';
+            '<p style="color:var(--text-muted);">Could not load minutes — check the Worker is deployed.</p>';
     }
 }
 
@@ -121,7 +113,6 @@ async function sendMessage() {
     await streamCaelumResponse();
 }
 
-// ── KEYBOARD HANDLER ──────────────────────────────────────────────────────────
 function handleChatKeydown(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -149,7 +140,6 @@ async function streamCaelumResponse() {
 
         if (!response.ok) throw new Error(`Worker error: ${response.status}`);
 
-        // Show skill indicator if worker loaded a skill
         const skill = response.headers.get('X-Caelum-Skill');
         if (skill && skill !== 'none') showSkillIndicator(skill);
 
@@ -193,16 +183,14 @@ async function streamCaelumResponse() {
     }
 }
 
-// ── SKILL INDICATOR ───────────────────────────────────────────────────────────
 function showSkillIndicator(skillName) {
     const indicator = document.getElementById('skillIndicator');
-    const text      = document.getElementById('skillIndicatorText');
-    text.textContent = `Reading: ${skillName.charAt(0).toUpperCase() + skillName.slice(1)}`;
+    document.getElementById('skillIndicatorText').textContent =
+        `Reading: ${skillName.charAt(0).toUpperCase() + skillName.slice(1)}`;
     indicator.style.display = 'flex';
     setTimeout(() => { indicator.style.display = 'none'; }, 4000);
 }
 
-// ── UI HELPERS ────────────────────────────────────────────────────────────────
 function appendMessage(role, content) {
     const container = document.getElementById('chatMessages');
     const welcome   = container.querySelector('.welcome-message');
