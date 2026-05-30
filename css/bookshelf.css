@@ -32,29 +32,24 @@
     border-color: rgba(255,255,255,0.25);
 }
 
-/* White label area — top portion */
+/* White label area — top portion, darkened for readability */
 .folder-label-area {
-    background: rgba(240, 236, 255, 0.92);
+    background: rgba(15, 8, 40, 0.88);
     padding: 4px 5px 3px;
-    min-height: 34px;
+    min-height: 36px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    gap: 1px;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-}
-
-.folder-spine-icon {
-    font-size: 0.78rem;
-    line-height: 1;
+    gap: 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .folder-spine-label {
     font-size: 0.5rem;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: rgba(15, 10, 40, 0.85);
+    color: rgba(226, 217, 243, 0.9);
     text-align: left;
     line-height: 1.25;
     word-break: break-word;
@@ -71,27 +66,15 @@
 .folder-body {
     flex: 1;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
-    padding-bottom: 6px;
 }
 
-/* File count badge */
-.folder-spine-count {
-    font-size: 0.48rem;
-    color: rgba(255,255,255,0.55);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-}
-
-/* Pull hole — circle at bottom of body */
-.folder-hole {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid rgba(255,255,255,0.15);
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+/* Emoji badge replaces the circle hole */
+.folder-emoji {
+    font-size: 1.2rem;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+    line-height: 1;
 }
 
 /* ── ADD FOLDER BUTTON ─────────────────────────────────────────────────────── */
