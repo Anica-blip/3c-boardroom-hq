@@ -24,21 +24,18 @@ async function loadBookshelf() {
 }
 
 function buildFolderSpine(folder, fileCount) {
-    return `
-        <div class="folder-spine"
-             style="background: linear-gradient(180deg, ${folder.color}dd 0%, ${folder.color}99 100%);"
-             onclick="openFolderModal('${folder.id}', '${escStr(folder.name)}', '${escStr(folder.r2_prefix || '')}')"
-             title="${folder.name}">
-            <div class="folder-label-area">
-                <span class="folder-spine-icon">${folder.icon}</span>
-                <span class="folder-spine-label">${folder.name}</span>
-            </div>
-            <div class="folder-body">
-                <div class="folder-hole"></div>
-                ${fileCount ? `<span class="folder-spine-count" style="position:absolute;top:38px;right:4px;">${fileCount}</span>` : ''}
-            </div>
-        </div>
-    `;
+    return '<div class="folder-spine"' +
+        ' style="background: linear-gradient(180deg, ' + folder.color + 'dd 0%, ' + folder.color + '99 100%);"' +
+        ' onclick="openFolderModal(\'' + folder.id + '\', \'' + escStr(folder.name) + '\', \'' + escStr(folder.r2_prefix || '') + '\')"' +
+        ' title="' + folder.name + '">' +
+        '<div class="folder-label-area">' +
+        '<span class="folder-spine-label">' + folder.name + '</span>' +
+        '</div>' +
+        '<div class="folder-body">' +
+        '<span class="folder-emoji">' + folder.icon + '</span>' +
+        (fileCount ? '<span style="position:absolute;top:40px;right:4px;font-size:0.44rem;color:rgba(255,255,255,0.4);">' + fileCount + '</span>' : '') +
+        '</div>' +
+        '</div>';
 }
 
 // ── FOLDER MODAL ──────────────────────────────────────────────────────────────
