@@ -36,10 +36,10 @@
     <!-- Boardroom — background image only, no shelf section -->
     <main class="boardroom"></main>
 
-    <!-- Caelum Toggle — favicon, small circle, bottom left -->
+    <!-- Caelum Toggle — 3C chat button, small circle, bottom left -->
     <button class="chat-toggle-btn" onclick="toggleSidebar()" title="Open Caelum">
-        <img src="public/favicon.png" alt=""
-             style="width:44px;height:44px;max-width:44px;max-height:44px;object-fit:contain;display:block;"
+        <img src="public/3c-chat-button.png" alt="Open Caelum"
+             style="width:54px;height:54px;object-fit:contain;display:block;"
              onerror="this.outerHTML='<span style=\'font-size:1.4rem;line-height:1\'>💎</span>'">
     </button>
 
@@ -65,8 +65,8 @@
                 </div>
             </div>
             <div class="sidebar-controls">
-                <!-- Minutes icon — always visible -->
-                <button class="btn-minutes" onclick="openMinutesPopup()" title="View latest minutes">📋</button>
+                <!-- Minutes icon — opens artifact panel -->
+                <button class="btn-minutes" onclick="openMinutesArtifact()" title="View latest minutes">📋</button>
                 <!-- New session -->
                 <button class="btn-new-session" onclick="newSession()" title="New Session">✦</button>
                 <!-- Minimize — keep session, hide panel -->
@@ -101,21 +101,20 @@
 
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="minimizeSidebar()"></div>
 
-    <!-- ── Minutes Popup ─────────────────────────────────────────────────── -->
-    <div class="minutes-popup-overlay" id="minutesPopupOverlay" onclick="closeMinutesPopup()"></div>
-    <div class="minutes-popup" id="minutesPopup">
-        <div class="minutes-popup-header">
-            <div>
-                <div class="minutes-popup-title" id="minutesPopupTitle">Boardroom Minutes</div>
-                <div class="minutes-popup-meta" id="minutesPopupMeta"></div>
+    <!-- ── Artifact Panel — RIGHT ────────────────────────────────────────── -->
+    <div class="artifact-panel" id="artifactPanel">
+        <div class="artifact-header">
+            <div class="artifact-title-wrap">
+                <span class="artifact-icon">📄</span>
+                <span class="artifact-title" id="artifactTitle">Document</span>
             </div>
-            <button class="minutes-popup-close" onclick="closeMinutesPopup()">✕</button>
+            <div class="artifact-actions">
+                <button class="btn-artifact-action" id="copyArtifactBtn" onclick="copyArtifact()" title="Copy content">⎘ Copy</button>
+                <button class="btn-artifact-action" onclick="downloadArtifact()" title="Download as .md">↓ Download</button>
+                <button class="btn-artifact-close" onclick="closeArtifactPanel()" title="Close">✕</button>
+            </div>
         </div>
-        <div class="minutes-popup-body" id="minutesPopupBody"></div>
-        <div class="minutes-popup-footer">
-            <span class="minutes-popup-note">📖 Caelum has read these minutes</span>
-            <button class="btn-cancel" onclick="closeMinutesPopup()">Close</button>
-        </div>
+        <div class="artifact-body" id="artifactBody"></div>
     </div>
 
     <!-- ── Folder Modal ─────────────────────────────────────────────────── -->
