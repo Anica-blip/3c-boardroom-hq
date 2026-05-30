@@ -1,144 +1,157 @@
-// ─── 3C Boardroom HQ — Bookshelf ─────────────────────────────────────────────
+/* ─── 3C Boardroom HQ — Bookshelf (standing binder/file style) ─────────────── */
 
-let currentFolderId   = null;
-let currentFolderName = '';
-let currentFileId     = null;
-
-// ── LOAD BOOKSHELF ────────────────────────────────────────────────────────────
-async function loadBookshelf() {
-    const shelf   = document.getElementById('bookshelf');
-    const folders = await supabaseAPI.getFolders();
-
-    if (!folders.length) {
-        shelf.innerHTML = '<p style="color:var(--text-muted);font-size:0.82rem;font-style:italic;">No folders yet.</p>';
-        return;
-    }
-
-    // Get file counts for each folder
-    const spines = await Promise.all(folders.map(async folder => {
-        const files = await supabaseAPI.getFiles(folder.id);
-        return buildFolderSpine(folder, files.length);
-    }));
-
-    shelf.innerHTML = spines.join('');
+/* Container sits inside .header-shelf */
+.bookshelf {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.4rem;
+    height: 100%;
+    padding-bottom: 4px;
 }
 
-function buildFolderSpine(folder, fileCount) {
-    const label = folder.name.length > 12
-        ? folder.name.substring(0, 11) + '…'
-        : folder.name;
-
-    // Generate a lighter shade of the folder color for the gradient
-    return `
-        <div class="folder-spine"
-             style="background: linear-gradient(160deg, ${folder.color}cc, ${folder.color}88);"
-             onclick="openFolderModal('${folder.id}', '${escStr(folder.name)}')"
-             title="${folder.name}">
-            <span class="folder-spine-count">${fileCount || ''}</span>
-            <span class="folder-spine-icon">${folder.icon}</span>
-            <span class="folder-spine-label">${label}</span>
-        </div>
-    `;
+/* ── STANDING FILE / BINDER ────────────────────────────────────────────────── */
+.folder-spine {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 68px;
+    height: 84px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.05);
+    flex-shrink: 0;
+    overflow: hidden;
 }
 
-// ── FOLDER MODAL ──────────────────────────────────────────────────────────────
-async function openFolderModal(folderId, folderName) {
-    currentFolderId   = folderId;
-    currentFolderName = folderName;
-
-    document.getElementById('folderModalTitle').textContent = folderName;
-    hideAddFileForm();
-    await renderFileList();
-    openModal('folderModal');
+.folder-spine:hover {
+    transform: translateY(-5px);
+    box-shadow: 2px 8px 20px rgba(0,0,0,0.55);
+    border-color: rgba(255,255,255,0.25);
 }
 
-async function renderFileList() {
-    const list  = document.getElementById('fileList');
-    const files = await supabaseAPI.getFiles(currentFolderId);
-
-    if (!files.length) {
-        list.innerHTML = '<p class="no-files-msg">No files yet — add the first one.</p>';
-        return;
-    }
-
-    list.innerHTML = files.map(file => `
-        <div class="file-item" onclick="openFileView('${file.id}', '${escStr(file.title)}', '${escStr(file.content)}')">
-            <div>
-                <div class="file-item-title">${file.title}</div>
-                <div class="file-item-meta">
-                    ${new Date(file.created_at).toLocaleDateString('en-GB')}
-                </div>
-            </div>
-            <span class="file-type-badge">${file.file_type}</span>
-        </div>
-    `).join('');
+/* White label area — top portion */
+.folder-label-area {
+    background: rgba(240, 236, 255, 0.92);
+    padding: 4px 5px 3px;
+    min-height: 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 1px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
 }
 
-function closeFolderModal() {
-    currentFolderId = null;
-    closeModal('folderModal');
+.folder-spine-icon {
+    font-size: 0.78rem;
+    line-height: 1;
 }
 
-// ── ADD FILE FORM ─────────────────────────────────────────────────────────────
-function showAddFileForm() {
-    document.getElementById('newFileTitle').value   = '';
-    document.getElementById('newFileContent').value = '';
-    document.getElementById('addFileForm').style.display = 'flex';
-    document.getElementById('newFileTitle').focus();
+.folder-spine-label {
+    font-size: 0.5rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: rgba(15, 10, 40, 0.85);
+    text-align: left;
+    line-height: 1.25;
+    word-break: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+    width: 100%;
 }
 
-function hideAddFileForm() {
-    document.getElementById('addFileForm').style.display = 'none';
+/* Coloured body — fills remaining space */
+.folder-body {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 6px;
 }
 
-async function saveNewFile() {
-    const title   = document.getElementById('newFileTitle').value.trim();
-    const content = document.getElementById('newFileContent').value.trim();
-    if (!title || !currentFolderId) return;
-
-    await supabaseAPI.createFile(currentFolderId, title, content);
-    hideAddFileForm();
-    await renderFileList();
-    await loadBookshelf(); // refresh file counts
+/* File count badge */
+.folder-spine-count {
+    font-size: 0.48rem;
+    color: rgba(255,255,255,0.55);
+    font-weight: 600;
+    letter-spacing: 0.04em;
 }
 
-// ── FILE VIEW MODAL ───────────────────────────────────────────────────────────
-function openFileView(fileId, title, content) {
-    currentFileId = fileId;
-    document.getElementById('fileViewTitle').textContent   = title;
-    document.getElementById('fileViewContent').value       = content;
-    openModal('fileViewModal');
+/* Pull hole — circle at bottom of body */
+.folder-hole {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
 }
 
-async function saveFileEdit() {
-    if (!currentFileId) return;
-    const title   = document.getElementById('fileViewTitle').textContent;
-    const content = document.getElementById('fileViewContent').value;
-    await supabaseAPI.updateFile(currentFileId, title, content);
-    await renderFileList();
-    closeFileViewModal();
+/* ── ADD FOLDER BUTTON ─────────────────────────────────────────────────────── */
+.btn-add-folder {
+    width: 30px;
+    height: 30px;
+    border: 1px dashed rgba(168, 85, 247, 0.35);
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(168, 85, 247, 0.55);
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    flex-shrink: 0;
+    align-self: center;
+}
+.btn-add-folder:hover {
+    border-color: var(--purple-light);
+    color: var(--purple-light);
+    background: rgba(168, 85, 247, 0.08);
 }
 
-async function deleteCurrentFile() {
-    if (!currentFileId) return;
-    if (!confirm('Delete this file? This cannot be undone.')) return;
-    await supabaseAPI.deleteFile(currentFileId);
-    currentFileId = null;
-    closeFileViewModal();
-    await renderFileList();
-    await loadBookshelf();
-}
+/* ── FILE LIST (folder modal) ──────────────────────────────────────────────── */
+.file-list { display: flex; flex-direction: column; gap: 0.4rem; min-height: 2rem; }
 
-function closeFileViewModal() {
-    currentFileId = null;
-    closeModal('fileViewModal');
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.9rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition);
 }
+.file-item:hover { background: var(--purple-glow); border-color: rgba(168, 85, 247, 0.4); }
+.file-item-title { font-size: 0.85rem; color: var(--text-primary); }
+.file-item-meta { font-size: 0.67rem; color: var(--text-muted); margin-top: 0.1rem; }
+.file-type-badge {
+    font-size: 0.58rem; padding: 0.15rem 0.4rem; border-radius: 20px;
+    background: rgba(109, 40, 217, 0.3); color: var(--purple-light);
+    letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
+}
+.no-files-msg { color: var(--text-muted); font-style: italic; font-size: 0.83rem; padding: 0.4rem 0; }
 
-// ── UTILITY ───────────────────────────────────────────────────────────────────
-function escStr(str) {
-    return String(str)
-        .replace(/\\/g, '\\\\')
-        .replace(/'/g, "\\'")
-        .replace(/"/g, '&quot;')
-        .replace(/\n/g, '\\n');
+.btn-add-file {
+    font-size: 0.75rem; padding: 0.38rem 0.85rem;
+    border: 1px dashed rgba(168, 85, 247, 0.3); border-radius: var(--radius-sm);
+    background: transparent; color: var(--purple-light); cursor: pointer;
+    transition: all var(--transition); align-self: flex-start;
+    font-family: 'Open Sans', sans-serif;
+}
+.btn-add-file:hover { border-color: var(--purple-light); background: var(--purple-glow); }
+
+.add-file-form {
+    display: flex; flex-direction: column; gap: 0.65rem; padding: 0.85rem;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
 }
