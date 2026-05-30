@@ -14,46 +14,51 @@
 </head>
 <body>
 
-    <!-- Watermark — above toolbar, right side -->
+    <!-- Watermark -->
     <div class="watermark">
         Designed and Built with ❤️ by Claude (Anthropic) × Chef Anica · 3C Thread To Success™ Cooking Lab 🧪👨‍🍳
     </div>
 
-    <!-- Header -->
+    <!-- Minimal Header — user badge only, no title -->
     <header class="header">
-        <div class="header-left">
-            <span class="header-crest">🌌</span>
-            <span class="header-title">3C Boardroom HQ</span>
-        </div>
+        <div></div>
         <div class="header-right">
             <span class="user-badge" id="userBadge">—</span>
-            <button class="btn-signout" onclick="supabaseAPI.signOut()" title="Sign Out">🚪</button>
         </div>
     </header>
 
     <!-- Boardroom Main -->
     <main class="boardroom">
-
-        <!-- Bookshelf Section only — minutes live in the sidebar -->
         <section class="bookshelf-section">
             <div class="section-label">📚 The Shelf</div>
             <div class="bookshelf" id="bookshelf"></div>
             <button class="btn-add-folder" onclick="showAddFolderModal()">+ New Folder</button>
         </section>
-
     </main>
 
-    <!-- Chat Toggle Button — LEFT side -->
+    <!-- Caelum Chat Toggle — bottom left -->
     <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleSidebar()">
-        <span class="chat-toggle-icon">🌌</span>
+        <img src="public/caelum.png" alt="Caelum" class="chat-toggle-img"
+             onerror="this.outerHTML='<span class=\'chat-toggle-icon\'>🌌</span>'">
         <span class="chat-toggle-label">Caelum</span>
+    </button>
+
+    <!-- Minutes Float Button — bottom left above Caelum -->
+    <button class="minutes-float-btn" onclick="openMinutesPopup()" title="View Latest Minutes">
+        📋
+    </button>
+
+    <!-- Sign Out — bottom right -->
+    <button class="signout-fixed" onclick="supabaseAPI.signOut()" title="Sign Out">
+        ╰┈➤ exit
     </button>
 
     <!-- ── Chat Sidebar — LEFT ───────────────────────────────────────────── -->
     <aside class="chat-sidebar" id="chatSidebar">
         <div class="sidebar-header">
             <div class="sidebar-title">
-                <span>🌌</span>
+                <img src="public/caelum.png" alt="Caelum" class="sidebar-avatar"
+                     onerror="this.outerHTML='<span style=\'font-size:1.4rem\'>🌌</span>'">
                 <div>
                     <div class="sidebar-name">Caelum</div>
                     <div class="sidebar-role">Chief Advisor</div>
@@ -67,7 +72,7 @@
 
         <div class="session-label" id="sessionLabel">No active session</div>
 
-        <!-- Minutes Card — auto-populated at session start -->
+        <!-- Minutes Card -->
         <div class="minutes-card" id="minutesCard" style="display:none;">
             <div class="minutes-card-inner" onclick="openMinutesPopup()">
                 <div class="minutes-card-header">
@@ -82,7 +87,7 @@
             </div>
         </div>
 
-        <!-- Skill indicator — shown when Caelum loads a skill -->
+        <!-- Skill indicator -->
         <div class="skill-indicator" id="skillIndicator" style="display:none;">
             <span class="skill-dot"></span>
             <span id="skillIndicatorText">Loading skill...</span>
@@ -90,8 +95,8 @@
 
         <div class="chat-messages" id="chatMessages">
             <div class="welcome-message">
-                <p>Hey, Creative Captains!</p>
-                <p>Start a session and brief me. I'm ready.</p>
+                <p>Hey Chef. I'm here.</p>
+                <p>Ready when you are — what are we working on today?</p>
                 <p class="caelum-sign">— Caelum</p>
             </div>
         </div>
@@ -108,7 +113,6 @@
         </div>
     </aside>
 
-    <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <!-- ── Minutes Popup ─────────────────────────────────────────────────── -->
@@ -160,27 +164,10 @@
             <div class="modal-body">
                 <input type="text" id="newFolderName" placeholder="Folder name..." class="form-input">
                 <input type="text" id="newFolderIcon" placeholder="Icon (emoji)" class="form-input" value="📁">
+                <input type="text" id="newFolderR2" placeholder="R2 prefix e.g. boardroom/" class="form-input">
                 <div class="form-actions">
                     <button class="btn-save" onclick="saveNewFolder()">Create</button>
                     <button class="btn-cancel" onclick="closeAddFolderModal()">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── New Minutes Modal ────────────────────────────────────────────── -->
-    <div class="modal" id="minutesModal">
-        <div class="modal-content modal-lg">
-            <div class="modal-header">
-                <h2>New Boardroom Minutes</h2>
-                <button class="modal-close" onclick="closeMinutesModal()">✕</button>
-            </div>
-            <div class="modal-body">
-                <input type="text" id="minutesTitle" placeholder="Session title..." class="form-input">
-                <textarea id="minutesContent" placeholder="Minutes content (markdown supported)..." class="form-textarea" rows="12"></textarea>
-                <div class="form-actions">
-                    <button class="btn-save" onclick="saveMinutes()">Save Minutes</button>
-                    <button class="btn-cancel" onclick="closeMinutesModal()">Cancel</button>
                 </div>
             </div>
         </div>
@@ -206,7 +193,6 @@
 
     <div class="modal-overlay" id="modalOverlay"></div>
 
-    <!-- Scripts -->
     <script src="js/supabaseAPI.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/bookshelf.js"></script>
