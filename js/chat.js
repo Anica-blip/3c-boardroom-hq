@@ -40,9 +40,11 @@ async function newSession() {
     // Load latest minutes metadata from Supabase
     latestMinutesMeta = await supabaseAPI.getLatestMinutes();
 
-    document.getElementById('sessionLabel').textContent = `Session: ${session.title}`;
+    const sessionLabel = document.getElementById('sessionLabel');
+    if (sessionLabel) sessionLabel.textContent = `Session: ${session.title}`;
 
-    document.getElementById('chatMessages').innerHTML = `
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) chatMessages.innerHTML = `
         <div class="welcome-message">
             <p>Hey Chef. I'm here.</p>
             <p>Ready when you are — what are we working on today?</p>
