@@ -1,157 +1,198 @@
-/* ─── 3C Boardroom HQ — Bookshelf (standing binder/file style) ─────────────── */
+// ─── 3C Boardroom HQ — Bookshelf (R2-backed file content) ────────────────────
 
-/* Container sits inside .header-shelf */
-.bookshelf {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.4rem;
-    height: 100%;
-    padding-bottom: 4px;
+let currentFolderId   = null;
+let currentFolderR2   = '';
+let currentFileId     = null;
+let currentFileR2Key  = null;
+
+// ── LOAD BOOKSHELF ────────────────────────────────────────────────────────────
+async function loadBookshelf() {
+    const shelf   = document.getElementById('bookshelf');
+    const folders = await supabaseAPI.getFolders();
+
+    if (!folders.length) {
+        shelf.innerHTML = '<p style="color:var(--text-muted);font-size:0.82rem;font-style:italic;">No folders yet.</p>';
+        return;
+    }
+
+    const spines = await Promise.all(folders.map(async folder => {
+        const files = await supabaseAPI.getFiles(folder.id);
+        return buildFolderSpine(folder, files.length);
+    }));
+
+    shelf.innerHTML = spines.join('');
 }
 
-/* ── STANDING FILE / BINDER ────────────────────────────────────────────────── */
-.folder-spine {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    width: 68px;
-    height: 84px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.18s ease;
-    position: relative;
-    border: 1px solid rgba(255,255,255,0.12);
-    box-shadow: 2px 2px 10px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.05);
-    flex-shrink: 0;
-    overflow: hidden;
+function buildFolderSpine(folder, fileCount) {
+    return `
+        <div class="folder-spine"
+             style="background: linear-gradient(180deg, ${folder.color}dd 0%, ${folder.color}99 100%);"
+             onclick="openFolderModal('${folder.id}', '${escStr(folder.name)}', '${escStr(folder.r2_prefix || '')}')"
+             title="${folder.name}">
+            <div class="folder-label-area">
+                <span class="folder-spine-icon">${folder.icon}</span>
+                <span class="folder-spine-label">${folder.name}</span>
+            </div>
+            <div class="folder-body">
+                <div class="folder-hole"></div>
+                ${fileCount ? `<span class="folder-spine-count" style="position:absolute;top:38px;right:4px;">${fileCount}</span>` : ''}
+            </div>
+        </div>
+    `;
 }
 
-.folder-spine:hover {
-    transform: translateY(-5px);
-    box-shadow: 2px 8px 20px rgba(0,0,0,0.55);
-    border-color: rgba(255,255,255,0.25);
+// ── FOLDER MODAL ──────────────────────────────────────────────────────────────
+async function openFolderModal(folderId, folderName, r2Prefix) {
+    currentFolderId = folderId;
+    currentFolderR2 = r2Prefix || '';
+
+    document.getElementById('folderModalTitle').textContent = folderName;
+    hideAddFileForm();
+    await renderFileList();
+    openModal('folderModal');
 }
 
-/* White label area — top portion */
-.folder-label-area {
-    background: rgba(240, 236, 255, 0.92);
-    padding: 4px 5px 3px;
-    min-height: 34px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: 1px;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
+async function renderFileList() {
+    const list  = document.getElementById('fileList');
+    const files = await supabaseAPI.getFiles(currentFolderId);
+
+    if (!files.length) {
+        list.innerHTML = '<p class="no-files-msg">No files yet — add the first one.</p>';
+        return;
+    }
+
+    list.innerHTML = files.map(file => `
+        <div class="file-item" onclick="openFileView('${file.id}', '${escStr(file.title)}', '${escStr(file.r2_key || '')}')">
+            <div>
+                <div class="file-item-title">${file.title}</div>
+                <div class="file-item-meta">
+                    ${new Date(file.created_at).toLocaleDateString('en-GB')}
+                    ${file.r2_key ? ' · <span style="color:var(--purple-light);font-size:0.65rem;">R2 ✓</span>' : ''}
+                </div>
+            </div>
+            <span class="file-type-badge">${file.file_type}</span>
+        </div>
+    `).join('');
 }
 
-.folder-spine-icon {
-    font-size: 0.78rem;
-    line-height: 1;
+function closeFolderModal() {
+    currentFolderId = null;
+    closeModal('folderModal');
 }
 
-.folder-spine-label {
-    font-size: 0.5rem;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: rgba(15, 10, 40, 0.85);
-    text-align: left;
-    line-height: 1.25;
-    word-break: break-word;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    font-family: 'Open Sans', sans-serif;
-    font-weight: 600;
-    width: 100%;
+// ── ADD FILE FORM ─────────────────────────────────────────────────────────────
+function showAddFileForm() {
+    document.getElementById('newFileTitle').value   = '';
+    document.getElementById('newFileContent').value = '';
+    document.getElementById('addFileForm').style.display = 'flex';
+    document.getElementById('newFileTitle').focus();
 }
 
-/* Coloured body — fills remaining space */
-.folder-body {
-    flex: 1;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 6px;
+function hideAddFileForm() {
+    document.getElementById('addFileForm').style.display = 'none';
 }
 
-/* File count badge */
-.folder-spine-count {
-    font-size: 0.48rem;
-    color: rgba(255,255,255,0.55);
-    font-weight: 600;
-    letter-spacing: 0.04em;
+async function saveNewFile() {
+    const title   = document.getElementById('newFileTitle').value.trim();
+    const content = document.getElementById('newFileContent').value.trim();
+    if (!title || !currentFolderId) return;
+
+    // Auto-generate R2 key from folder prefix + slugified title
+    const slug  = title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const r2Key = currentFolderR2
+        ? `${currentFolderR2.replace(/\/$/, '')}/${slug}.md`
+        : `skills/${slug}.md`;
+
+    // Upload content to R2 via worker (if content provided)
+    if (content) {
+        try {
+            await fetch(`${WORKER_URL}/files/${encodeURIComponent(r2Key)}`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body:    content
+            });
+        } catch (err) {
+            console.error('❌ R2 upload error:', err);
+        }
+    }
+
+    // Save metadata to Supabase (no content stored here)
+    await supabaseAPI.createFile(currentFolderId, title, r2Key);
+    hideAddFileForm();
+    await renderFileList();
+    await loadBookshelf();
 }
 
-/* Pull hole — circle at bottom of body */
-.folder-hole {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid rgba(255,255,255,0.15);
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
+// ── FILE VIEW MODAL (loads content from R2) ───────────────────────────────────
+async function openFileView(fileId, title, r2Key) {
+    currentFileId    = fileId;
+    currentFileR2Key = r2Key;
+
+    document.getElementById('fileViewTitle').textContent = title;
+    document.getElementById('fileViewContent').value     = 'Loading from R2...';
+    openModal('fileViewModal');
+
+    if (!r2Key) {
+        document.getElementById('fileViewContent').value = '';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${WORKER_URL}/files/${encodeURIComponent(r2Key)}`);
+        const data     = await response.json();
+        document.getElementById('fileViewContent').value = data.content || '';
+    } catch (err) {
+        document.getElementById('fileViewContent').value = '⚠️ Could not load from R2. Check Worker is deployed.';
+    }
 }
 
-/* ── ADD FOLDER BUTTON ─────────────────────────────────────────────────────── */
-.btn-add-folder {
-    width: 30px;
-    height: 30px;
-    border: 1px dashed rgba(168, 85, 247, 0.35);
-    border-radius: 6px;
-    background: transparent;
-    color: rgba(168, 85, 247, 0.55);
-    cursor: pointer;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all var(--transition);
-    flex-shrink: 0;
-    align-self: center;
-}
-.btn-add-folder:hover {
-    border-color: var(--purple-light);
-    color: var(--purple-light);
-    background: rgba(168, 85, 247, 0.08);
+async function saveFileEdit() {
+    if (!currentFileId) return;
+
+    const title   = document.getElementById('fileViewTitle').textContent;
+    const content = document.getElementById('fileViewContent').value;
+
+    // Upload updated content to R2
+    if (currentFileR2Key && content) {
+        try {
+            await fetch(`${WORKER_URL}/files/${encodeURIComponent(currentFileR2Key)}`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body:    content
+            });
+        } catch (err) {
+            console.error('❌ R2 save error:', err);
+        }
+    }
+
+    // Update metadata in Supabase
+    await supabaseAPI.updateFile(currentFileId, title, currentFileR2Key);
+    await renderFileList();
+    closeFileViewModal();
 }
 
-/* ── FILE LIST (folder modal) ──────────────────────────────────────────────── */
-.file-list { display: flex; flex-direction: column; gap: 0.4rem; min-height: 2rem; }
-
-.file-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.6rem 0.9rem;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    transition: all var(--transition);
+async function deleteCurrentFile() {
+    if (!currentFileId) return;
+    if (!confirm('Delete this file? This removes the Supabase record. The R2 file can be removed from Cloudflare directly.')) return;
+    await supabaseAPI.deleteFile(currentFileId);
+    currentFileId    = null;
+    currentFileR2Key = null;
+    closeFileViewModal();
+    await renderFileList();
+    await loadBookshelf();
 }
-.file-item:hover { background: var(--purple-glow); border-color: rgba(168, 85, 247, 0.4); }
-.file-item-title { font-size: 0.85rem; color: var(--text-primary); }
-.file-item-meta { font-size: 0.67rem; color: var(--text-muted); margin-top: 0.1rem; }
-.file-type-badge {
-    font-size: 0.58rem; padding: 0.15rem 0.4rem; border-radius: 20px;
-    background: rgba(109, 40, 217, 0.3); color: var(--purple-light);
-    letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
-}
-.no-files-msg { color: var(--text-muted); font-style: italic; font-size: 0.83rem; padding: 0.4rem 0; }
 
-.btn-add-file {
-    font-size: 0.75rem; padding: 0.38rem 0.85rem;
-    border: 1px dashed rgba(168, 85, 247, 0.3); border-radius: var(--radius-sm);
-    background: transparent; color: var(--purple-light); cursor: pointer;
-    transition: all var(--transition); align-self: flex-start;
-    font-family: 'Open Sans', sans-serif;
+function closeFileViewModal() {
+    currentFileId    = null;
+    currentFileR2Key = null;
+    closeModal('fileViewModal');
 }
-.btn-add-file:hover { border-color: var(--purple-light); background: var(--purple-glow); }
 
-.add-file-form {
-    display: flex; flex-direction: column; gap: 0.65rem; padding: 0.85rem;
-    background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
-    border-radius: var(--radius-sm);
+// ── UTILITY ───────────────────────────────────────────────────────────────────
+function escStr(str) {
+    return String(str)
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '&quot;')
+        .replace(/\n/g, '\\n');
 }
