@@ -3,7 +3,7 @@
 let currentSessionId    = null;
 let conversationHistory = [];
 let isStreaming         = false;
-let latestMinutesMeta   = null; // metadata from Supabase (no content)
+let latestMinutesMeta   = null;
 
 // ── SIDEBAR TOGGLE ────────────────────────────────────────────────────────────
 function toggleSidebar() {
@@ -24,70 +24,64 @@ function toggleSidebar() {
 
 // ── SESSION MANAGEMENT ────────────────────────────────────────────────────────
 async function newSession() {
-    const session = await supabaseAPI.createSession(
-        'Session — ' + new Date().toLocaleDateString('en-GB', {
-            day: 'numeric', month: 'short'
-        })
-    );
+    const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const session = await supabaseAPI.createSession(`Session — ${today}`);
     if (!session) return;
 
     currentSessionId    = session.id;
     conversationHistory = [];
 
-    document.getElementById('sessionLabel').textContent = 'Session: ' + session.title;
+    // Load latest minutes metadata
+    latestMinutesMeta = await supabaseAPI.getLatestMinutes();
 
+    // Update session label with minutes icon if minutes exist
+    const sessionLabel = document.getElementById('sessionLabel');
+    if (latestMinutesMeta) {
+        sessionLabel.innerHTML = `
+            <span>Session: ${session.title}</span>
+            <button class="minutes-icon-btn" onclick="openMinutesPopup()" title="View latest minutes">
+                📋 minutes
+            </button>
+        `;
+    } else {
+        sessionLabel.textContent = `Session: ${session.title}`;
+    }
+
+    // Reset chat to personal Caelum greeting
     document.getElementById('chatMessages').innerHTML = `
         <div class="welcome-message">
-            <p>Hey, Creative Captains! Caelum here,</p>
-            <p>Ready when you are. What are we working on?</p>
+            <p>Hey Chef. I'm here.</p>
+            <p>Ready when you are — what are we working on today?</p>
             <p class="caelum-sign">— Caelum</p>
         </div>
     `;
-
-    // Load minutes metadata from Supabase — content fetched from R2 on demand
-    latestMinutesMeta = await supabaseAPI.getLatestMinutes();
-    if (latestMinutesMeta) {
-        showMinutesCard(latestMinutesMeta);
-    } else {
-        document.getElementById('minutesCard').style.display = 'none';
-    }
-}
-
-// ── MINUTES CARD ──────────────────────────────────────────────────────────────
-function showMinutesCard(minutes) {
-    const card = document.getElementById('minutesCard');
-    card.style.display = 'block';
-
-    const date = new Date(minutes.session_date).toLocaleDateString('en-GB', {
-        day: 'numeric', month: 'long', year: 'numeric'
-    });
-
-    document.getElementById('minutesCardTitle').textContent =
-        `Session ${minutes.session_number} — ${minutes.title}`;
-    document.getElementById('minutesCardMeta').textContent =
-        `${date} · ${minutes.status === 'open' ? '● Open' : '✓ Closed'}`;
-    document.getElementById('minutesCardPreview').textContent =
-        'Caelum has read these minutes and is ready to continue.';
 }
 
 // ── MINUTES POPUP (fetches content from R2 via worker) ────────────────────────
 async function openMinutesPopup() {
-    if (!latestMinutesMeta) return;
+    if (!latestMinutesMeta && !document.getElementById('minutesPopup')) return;
 
-    document.getElementById('minutesPopupTitle').textContent =
-        `Session ${latestMinutesMeta.session_number} — ${latestMinutesMeta.title}`;
-    document.getElementById('minutesPopupMeta').textContent =
-        new Date(latestMinutesMeta.session_date).toLocaleDateString('en-GB', {
+    const popup   = document.getElementById('minutesPopup');
+    const overlay = document.getElementById('minutesPopupOverlay');
+
+    // Set title and meta
+    if (latestMinutesMeta) {
+        const date = new Date(latestMinutesMeta.session_date).toLocaleDateString('en-GB', {
             day: 'numeric', month: 'long', year: 'numeric'
-        }) + ' · ' + latestMinutesMeta.status;
+        });
+        document.getElementById('minutesPopupTitle').textContent =
+            `Session ${latestMinutesMeta.session_number} — ${latestMinutesMeta.title}`;
+        document.getElementById('minutesPopupMeta').textContent =
+            `${date} · ${latestMinutesMeta.status}`;
+    }
 
     document.getElementById('minutesPopupBody').innerHTML =
         '<p style="color:var(--text-muted);font-style:italic;">Loading minutes...</p>';
 
-    document.getElementById('minutesPopupOverlay').classList.add('active');
-    document.getElementById('minutesPopup').classList.add('active');
+    overlay.classList.add('active');
+    popup.classList.add('active');
 
-    // Fetch content from R2 via worker
+    // Fetch from R2 via worker
     try {
         const response = await fetch(`${WORKER_URL}/minutes/latest`);
         const data     = await response.json();
@@ -96,11 +90,11 @@ async function openMinutesPopup() {
                 marked.parse(data.content);
         } else {
             document.getElementById('minutesPopupBody').innerHTML =
-                '<p style="color:var(--text-muted);font-style:italic;">No minutes content found in R2.</p>';
+                '<p style="color:var(--text-muted);font-style:italic;">No minutes found in R2 yet. Add your first minutes file to <code>boardroom/minutes/</code></p>';
         }
-    } catch (err) {
+    } catch {
         document.getElementById('minutesPopupBody').innerHTML =
-            '<p style="color:var(--text-muted);">Could not load minutes. Check Worker is deployed.</p>';
+            '<p style="color:var(--text-muted);">Could not load minutes — check Worker is deployed.</p>';
     }
 }
 
@@ -120,12 +114,10 @@ async function sendMessage() {
     if (!currentSessionId) await newSession();
 
     input.value = '';
-
     appendMessage('user', content);
     await supabaseAPI.saveMessage(currentSessionId, 'user', content);
     conversationHistory.push({ role: 'user', content });
 
-    // Worker handles all R2 context loading — brain, minutes, skill detection
     await streamCaelumResponse();
 }
 
@@ -205,8 +197,7 @@ async function streamCaelumResponse() {
 function showSkillIndicator(skillName) {
     const indicator = document.getElementById('skillIndicator');
     const text      = document.getElementById('skillIndicatorText');
-    const display   = skillName.charAt(0).toUpperCase() + skillName.slice(1);
-    text.textContent = `Reading: ${display}`;
+    text.textContent = `Reading: ${skillName.charAt(0).toUpperCase() + skillName.slice(1)}`;
     indicator.style.display = 'flex';
     setTimeout(() => { indicator.style.display = 'none'; }, 4000);
 }
@@ -229,8 +220,8 @@ function appendMessage(role, content) {
 }
 
 function scrollToBottom() {
-    const container = document.getElementById('chatMessages');
-    container.scrollTop = container.scrollHeight;
+    const c = document.getElementById('chatMessages');
+    c.scrollTop = c.scrollHeight;
 }
 
 function escapeHtml(text) {
