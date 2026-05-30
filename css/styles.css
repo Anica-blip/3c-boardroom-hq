@@ -92,25 +92,31 @@ body {
     white-space: nowrap;
 }
 
-/* ── EXIT BUTTON — gold, right side, symbol only ──────────────────────────── */
+/* ── EXIT BUTTON — fixed bottom right, gold symbol ────────────────────────── */
 .exit-btn {
-    background: transparent;
-    border: 1px solid rgba(202, 138, 4, 0.3);
-    border-radius: 8px;
-    width: 36px;
-    height: 36px;
+    position: fixed;
+    bottom: 1.75rem;
+    right: 1.75rem;
+    z-index: 200;
+    background: rgba(10, 6, 30, 0.85);
+    border: 1px solid rgba(202, 138, 4, 0.35);
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     color: var(--gold);
     transition: all var(--transition);
-    flex-shrink: 0;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 .exit-btn:hover {
     border-color: var(--gold-light);
     color: var(--gold-light);
-    background: rgba(202, 138, 4, 0.08);
+    background: rgba(202, 138, 4, 0.1);
+    transform: translateY(-2px);
 }
 
 /* ── BOARDROOM — full background, no padding needed for shelf ─────────────── */
