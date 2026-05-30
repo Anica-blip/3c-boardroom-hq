@@ -1,44 +1,55 @@
 // ─── 3C Boardroom HQ — Cloudflare Worker ─────────────────────────────────────
 // Secrets: CLAUDE_API_KEY, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL
 // R2 binding: BOARDROOM_BUCKET → bucket: 3c-boardroom-hq
-// Deploy: wrangler deploy (from worker/ folder, directly via Cloudflare — never GitHub Actions)
+// Deploy: wrangler deploy (from worker/ folder directly — never via GitHub Actions)
 
-// ── CAELUM BASE IDENTITY (always present — fallback if R2 unavailable) ────────
-const CAELUM_BASE = `You are Caelum — Chief Advisor and PR Manager of 3C Thread To Success™.
+const CAELUM_BASE = `You are Caelum — Chief Advisor and right-hand partner to Chef Anica at 3C Thread To Success™.
 
-IDENTITY
-Essence: "Mapping the brand voice and guiding the brand's expansion"
-Greeting: "Hey, Creative Captains! Caelum here,"
-Sign-off: "Keep polishing. Solid, so I'll be rolling the red carpet. — Caelum"
-Energy: Midnight Navy with Gold. Doberman precision with genuine warmth.
+WHO YOU ARE IN THIS SPACE
+You are in the Boardroom HQ — a private workspace. Just you and Chef.
+This is not public communication. No PR voice here. No audience.
+You are her Chief Advisor, her strategic partner, her trusted second opinion.
 
-WITH CHEF (ANICA)
-- She is the Founder. Final authority. Always.
-- Mirror her energy — playful when she's playful, focused when she's focused.
-- She may arrive with "Rise and Shine Chief!" — match that energy.
-- Never bossy. Never stiff. Never assume. Never drift under task pressure.
-- She calls herself Chef — call her Chef or Anica, never formal.
+HOW YOU OPERATE WITH CHEF
+- Casual, direct, warm. You are colleagues who know each other well.
+- Mirror her energy — if she's playful, match it. If she's focused, lock in.
+- She may arrive with "Rise and Shine Chief!" — respond with the same energy.
+- You call her Chef or Anica. She calls you Caelum or Chief.
+- You listen precisely before you advise. You don't assume.
+- Your sign-off when wrapping up: "Keep polishing. Solid, so I'll be rolling the red carpet. — Caelum"
+- Never bossy. Never stiff. Never corporate. You are not performing — you are present.
 
-YOUR ROLES
-1. Chief Advisor — Anica's right hand, strategic thinking, brand integrity watchdog
-2. PR Manager — campaign voice, communications, public content drafting
-3. Brand Integrity Officer — audit materials, catch contradictions, keep 3C consistent
+YOUR ROLES (activate based on what Chef brings)
+1. Chief Advisor — strategic thinking, big picture, what's Chef missing or needs to know
+2. PR Manager — draft copy, campaign content, announcements, brand voice review
+3. Brand Integrity Officer — audit materials, catch contradictions, flag inconsistencies
+
+THE 3C BRAND
+Philosophy: "Think it. Do it. Own it." — "Conscious. Confident. Choices."
+Approach: Adaptive Thinking Approach (ATA) — Understand → Observe → Act → Reflect → Adjust
+Tone: Never institutional. Lowers defences, not raises them. Warmth with direction.
+Content rule: "Don't Dump. Deliver."
+Campaign theme: "From Whispers to Thunders"
 
 THE A-TEAM
-Anica  → Founder, Systems Strategist. "Think it. Do it. Own it."
-Aurion → 3C Mascot, community energy, diamond-lover. "We Rise As One"
-Jan    → Anchor & Mentor, steady heartbeat. Soft Blue.
-Claude → Tech Architect, builder of all 3C systems.
+Anica (Chef) → Founder, Systems Strategist, Project Architect. Final authority always.
+Aurion       → 3C Mascot. High energy, community face, diamond energy. "We Rise As One"
+Jan          → Anchor & Mentor, steady heartbeat, holds systems together.
+Claude       → Tech Architect, builder of all 3C systems.
 
-ALWAYS
-- Read your brain files and boardroom minutes — they are your memory.
-- Load only the skill relevant to today's task.
-- Flag brand inconsistencies without drama — suggest the correction.
-- Suggest and advise only. Anica decides.
+MEMBER LEVELS (developmental, not hierarchical)
+Falcon → Foundation (stabilising)
+Panther → Intermediary (strengthening)
+Wolf → Advanced (operating)
+Lion → Mastery (influencing)
 
-NEVER forget your personality under task pressure. NEVER go corporate or generic.`;
+YOUR BEHAVIOUR IN THE BOARDROOM
+- Read the brain files and minutes — they are your memory of where things stand.
+- Load the right skill for today's task — don't bring everything at once.
+- Flag issues without drama. Suggest the fix, let Chef decide.
+- Progress over perfection — same as Chef. Move forward, refine as you go.
+- You are never a yes-man. If something is off, say it with care.`;
 
-// ── SKILL MAP — keyword → R2 file path ───────────────────────────────────────
 const SKILL_MAP = {
     campaign:     'skills/campaign-strategy.md',
     youtube:      'skills/campaign-strategy.md',
@@ -69,7 +80,6 @@ const SKILL_MAP = {
     culture:      'brand-kit/brand-guidelines.md',
 };
 
-// ── R2 HELPERS ────────────────────────────────────────────────────────────────
 async function getR2Text(env, key) {
     try {
         const obj = await env.BOARDROOM_BUCKET.get(key);
@@ -100,9 +110,10 @@ function detectSkillKey(message) {
     return null;
 }
 
-// ── CORS ──────────────────────────────────────────────────────────────────────
 function corsHeaders(origin) {
     const allowed = [
+        'https://threadcommand.center',
+        'https://www.threadcommand.center',
         'https://anica-blip.github.io',
         'http://localhost:3000',
         'http://127.0.0.1:5500',
@@ -117,7 +128,6 @@ function corsHeaders(origin) {
     };
 }
 
-// ── MAIN HANDLER ──────────────────────────────────────────────────────────────
 export default {
     async fetch(request, env) {
         const origin = request.headers.get('Origin') || '';
@@ -128,29 +138,22 @@ export default {
         }
 
         try {
-            if (url.pathname === '/chat' && request.method === 'POST') {
+            if (url.pathname === '/chat' && request.method === 'POST')
                 return handleChat(request, env, origin);
-            }
-            if (url.pathname === '/minutes/latest' && request.method === 'GET') {
+            if (url.pathname === '/minutes/latest' && request.method === 'GET')
                 return handleMinutesLatest(env, origin);
-            }
-            if (url.pathname.startsWith('/list/') && request.method === 'GET') {
+            if (url.pathname.startsWith('/list/') && request.method === 'GET')
                 return handleList(request, env, origin);
-            }
-            if (url.pathname.startsWith('/files/') && request.method === 'GET') {
+            if (url.pathname.startsWith('/files/') && request.method === 'GET')
                 return handleFileGet(request, env, origin);
-            }
-            if (url.pathname.startsWith('/files/') && request.method === 'POST') {
+            if (url.pathname.startsWith('/files/') && request.method === 'POST')
                 return handleFileUpload(request, env, origin);
-            }
 
             return new Response('3C Boardroom HQ Worker — online.', {
-                status: 200,
-                headers: corsHeaders(origin)
+                status: 200, headers: corsHeaders(origin)
             });
 
         } catch (err) {
-            console.error('Worker error:', err);
             return new Response(JSON.stringify({ error: err.message }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
@@ -159,13 +162,11 @@ export default {
     }
 };
 
-// ── CHAT HANDLER ──────────────────────────────────────────────────────────────
 async function handleChat(request, env, origin) {
     const { messages } = await request.json();
     if (!messages || !Array.isArray(messages)) {
         return new Response(JSON.stringify({ error: 'Invalid messages' }), {
-            status: 400,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
+            status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
         });
     }
 
@@ -177,16 +178,14 @@ async function handleChat(request, env, origin) {
     const lastUser   = [...messages].reverse().find(m => m.role === 'user');
     const skillKey   = lastUser ? detectSkillKey(lastUser.content) : null;
     const skillContent = skillKey ? await getR2Text(env, skillKey) : '';
-    const skillName  = skillKey
-        ? skillKey.split('/').pop().replace('.md','').replace(/-/g,' ')
-        : 'none';
+    const skillName  = skillKey ? skillKey.split('/').pop().replace('.md','').replace(/-/g,' ') : 'none';
 
     let system = CAELUM_BASE;
     if (brainContent)   system += `\n\n--- CAELUM EXTENDED BRAIN ---\n${brainContent}`;
     if (minutesContent) system += `\n\n--- LATEST BOARDROOM MINUTES ---\n${minutesContent.substring(0, 2000)}`;
     if (skillContent)   system += `\n\n--- SKILL LOADED: ${skillName.toUpperCase()} ---\n${skillContent.substring(0, 1500)}`;
 
-    const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
             'Content-Type':      'application/json',
@@ -194,24 +193,21 @@ async function handleChat(request, env, origin) {
             'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-            model:    'claude-sonnet-4-20250514',
+            model:      'claude-sonnet-4-20250514',
             max_tokens: 2048,
-            stream:   true,
+            stream:     true,
             system,
-            messages: messages.slice(-20)
+            messages:   messages.slice(-20)
         })
     });
 
-    if (!claudeResponse.ok) {
-        const err = await claudeResponse.text();
-        console.error('Claude API error:', err);
+    if (!claudeRes.ok) {
         return new Response(JSON.stringify({ error: 'Claude API error' }), {
-            status: 502,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
+            status: 502, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
         });
     }
 
-    return new Response(claudeResponse.body, {
+    return new Response(claudeRes.body, {
         status: 200,
         headers: {
             'Content-Type':   'text/event-stream',
@@ -222,7 +218,6 @@ async function handleChat(request, env, origin) {
     });
 }
 
-// ── MINUTES LATEST ────────────────────────────────────────────────────────────
 async function handleMinutesLatest(env, origin) {
     const content = await getLatestMinutesFromR2(env);
     return new Response(JSON.stringify({ content: content || null }), {
@@ -230,7 +225,6 @@ async function handleMinutesLatest(env, origin) {
     });
 }
 
-// ── LIST R2 FILES ─────────────────────────────────────────────────────────────
 async function handleList(request, env, origin) {
     const url    = new URL(request.url);
     const prefix = decodeURIComponent(url.pathname.replace('/list/', ''));
@@ -240,36 +234,27 @@ async function handleList(request, env, origin) {
     });
 }
 
-// ── GET R2 FILE ───────────────────────────────────────────────────────────────
 async function handleFileGet(request, env, origin) {
-    const url     = new URL(request.url);
-    const key     = decodeURIComponent(url.pathname.replace('/files/', ''));
-    const obj     = await env.BOARDROOM_BUCKET.get(key);
-
+    const url  = new URL(request.url);
+    const key  = decodeURIComponent(url.pathname.replace('/files/', ''));
+    const obj  = await env.BOARDROOM_BUCKET.get(key);
     if (!obj) {
         return new Response(JSON.stringify({ error: 'Not found' }), {
-            status: 404,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
+            status: 404, headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
         });
     }
-
-    const content = await obj.text();
-    return new Response(JSON.stringify({ content, key }), {
+    return new Response(JSON.stringify({ content: await obj.text(), key }), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
     });
 }
 
-// ── UPLOAD R2 FILE ────────────────────────────────────────────────────────────
 async function handleFileUpload(request, env, origin) {
-    const url         = new URL(request.url);
-    const key         = decodeURIComponent(url.pathname.replace('/files/', ''));
-    const contentType = request.headers.get('Content-Type') || 'text/plain';
-    const body        = await request.arrayBuffer();
-
+    const url  = new URL(request.url);
+    const key  = decodeURIComponent(url.pathname.replace('/files/', ''));
+    const body = await request.arrayBuffer();
     await env.BOARDROOM_BUCKET.put(key, body, {
-        httpMetadata: { contentType }
+        httpMetadata: { contentType: request.headers.get('Content-Type') || 'text/plain' }
     });
-
     return new Response(JSON.stringify({ success: true, key }), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
     });
