@@ -20,13 +20,12 @@
     --radius:         12px;
     --radius-sm:      8px;
     --transition:     0.2s ease;
-    --header-h:       56px;
-    --watermark-h:    24px;
+    --header-h:       44px;
+    --watermark-h:    22px;
     --sidebar-w:      480px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 html, body { height: 100%; overflow-x: hidden; }
 
 body {
@@ -39,12 +38,12 @@ body {
 .watermark {
     width: 100%;
     text-align: right;
-    padding: 3px 16px;
-    font-size: 0.62rem;
-    opacity: 0.45;
+    padding: 2px 16px;
+    font-size: 0.58rem;
+    opacity: 0.4;
     letter-spacing: 0.02em;
     color: var(--text-secondary);
-    background: rgba(0,0,0,0.3);
+    background: rgba(0,0,0,0.35);
     pointer-events: none;
     height: var(--watermark-h);
     display: flex;
@@ -52,49 +51,29 @@ body {
     justify-content: flex-end;
 }
 
-/* ── HEADER ────────────────────────────────────────────────────────────────── */
+/* ── HEADER — minimal, user badge only ────────────────────────────────────── */
 .header {
     height: var(--header-h);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 1.5rem;
-    background: var(--glass-bg);
-    border-bottom: 1px solid var(--glass-border);
+    justify-content: flex-end;
+    padding: 0 1rem;
+    background: rgba(8, 4, 24, 0.6);
+    border-bottom: 1px solid rgba(168, 85, 247, 0.12);
     backdrop-filter: blur(12px);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
-.header-left { display: flex; align-items: center; gap: 0.6rem; }
-.header-crest { font-size: 1.4rem; }
-
-.header-title {
-    font-size: 1rem;
-    letter-spacing: 0.06em;
-    color: var(--text-primary);
-    font-weight: 400;
-}
-
 .header-right { display: flex; align-items: center; gap: 0.75rem; }
 
 .user-badge {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--text-secondary);
     letter-spacing: 0.04em;
+    opacity: 0.7;
 }
-
-.btn-signout {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 1.1rem;
-    opacity: 0.6;
-    transition: opacity var(--transition);
-}
-
-.btn-signout:hover { opacity: 1; }
 
 /* ── BOARDROOM MAIN ────────────────────────────────────────────────────────── */
 .boardroom {
@@ -104,7 +83,7 @@ body {
     background-position: center;
     background-attachment: fixed;
     position: relative;
-    padding: 2rem 2rem 6rem;
+    padding: 1.5rem 1.5rem 6rem;
 }
 
 .boardroom::before {
@@ -124,59 +103,55 @@ body {
 
 .boardroom > * { position: relative; z-index: 1; }
 
-/* ── SECTION LABELS ────────────────────────────────────────────────────────── */
 .section-label {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--purple-light);
-    margin-bottom: 1rem;
-    opacity: 0.8;
+    margin-bottom: 0.75rem;
+    opacity: 0.75;
 }
 
 .empty-state { color: var(--text-muted); font-style: italic; }
 
 /* ── BUTTONS ───────────────────────────────────────────────────────────────── */
 .btn-save {
-    padding: 0.6rem 1.4rem;
+    padding: 0.55rem 1.2rem;
     background: var(--purple-mid);
     border: none;
     border-radius: var(--radius-sm);
     color: white;
     cursor: pointer;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     font-family: 'Open Sans', sans-serif;
     transition: background var(--transition);
 }
-
 .btn-save:hover { background: var(--purple-light); }
 
 .btn-cancel {
-    padding: 0.6rem 1.2rem;
+    padding: 0.55rem 1rem;
     background: transparent;
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-sm);
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     font-family: 'Open Sans', sans-serif;
     transition: all var(--transition);
 }
-
 .btn-cancel:hover { border-color: var(--purple-light); color: var(--text-primary); }
 
 .btn-danger {
-    padding: 0.6rem 1.2rem;
+    padding: 0.55rem 1rem;
     background: transparent;
     border: 1px solid rgba(239, 68, 68, 0.4);
     border-radius: var(--radius-sm);
     color: rgba(239, 68, 68, 0.8);
     cursor: pointer;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     font-family: 'Open Sans', sans-serif;
     transition: all var(--transition);
 }
-
 .btn-danger:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
 
 /* ── MODALS ────────────────────────────────────────────────────────────────── */
@@ -189,7 +164,6 @@ body {
     justify-content: center;
     padding: 1rem;
 }
-
 .modal.active { display: flex; }
 
 .modal-overlay {
@@ -200,94 +174,87 @@ body {
     z-index: 999;
     backdrop-filter: blur(4px);
 }
-
 .modal-overlay.active { display: block; }
 
 .modal-content {
-    background: #1a1040;
+    background: #120d38;
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     width: 100%;
     max-width: 640px;
     max-height: 85vh;
     overflow-y: auto;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.7);
     position: relative;
     z-index: 1001;
 }
-
-.modal-content.modal-sm { max-width: 380px; }
-.modal-content.modal-lg { max-width: 760px; }
+.modal-content.modal-sm { max-width: 360px; }
+.modal-content.modal-lg { max-width: 780px; }
 
 .modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.25rem 1.5rem;
+    padding: 1.1rem 1.4rem;
     border-bottom: 1px solid var(--glass-border);
 }
-
 .modal-header h2 {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 400;
     letter-spacing: 0.04em;
     color: var(--text-primary);
 }
-
 .modal-close {
     background: transparent;
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1rem;
     transition: color var(--transition);
 }
-
 .modal-close:hover { color: var(--text-primary); }
 
 .modal-body {
-    padding: 1.5rem;
+    padding: 1.25rem 1.4rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.9rem;
 }
 
 /* ── FORMS ─────────────────────────────────────────────────────────────────── */
 .form-input {
     width: 100%;
-    padding: 0.7rem 1rem;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-size: 0.9rem;
-    font-family: 'Open Sans', sans-serif;
-    outline: none;
-    transition: border-color var(--transition);
-}
-
-.form-input:focus { border-color: var(--purple-light); }
-
-.form-textarea {
-    width: 100%;
-    padding: 0.7rem 1rem;
+    padding: 0.65rem 0.9rem;
     background: rgba(255,255,255,0.05);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
     font-size: 0.88rem;
+    font-family: 'Open Sans', sans-serif;
+    outline: none;
+    transition: border-color var(--transition);
+}
+.form-input:focus { border-color: var(--purple-light); }
+
+.form-textarea {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.85rem;
     font-family: 'Courier New', monospace;
     resize: vertical;
     outline: none;
-    transition: border-color var(--transition);
     line-height: 1.6;
+    transition: border-color var(--transition);
 }
-
 .form-textarea:focus { border-color: var(--purple-light); }
 
-.form-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
+.form-actions { display: flex; gap: 0.65rem; margin-top: 0.4rem; }
 
-/* ── CHAT TOGGLE BUTTON — LEFT side ───────────────────────────────────────── */
+/* ── CAELUM TOGGLE — bottom left ──────────────────────────────────────────── */
 .chat-toggle-btn {
     position: fixed;
     bottom: 2rem;
@@ -296,8 +263,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.9rem 1.1rem;
+    gap: 0.25rem;
+    padding: 0.7rem 0.9rem;
     background: rgba(88, 28, 135, 0.85);
     border: 1px solid rgba(168, 85, 247, 0.5);
     border-radius: 14px;
@@ -306,18 +273,69 @@ body {
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 30px rgba(88, 28, 135, 0.4);
 }
-
 .chat-toggle-btn:hover {
     background: rgba(109, 40, 217, 0.9);
     transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(88, 28, 135, 0.5);
 }
-
-.chat-toggle-icon { font-size: 1.4rem; }
-
+.chat-toggle-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+}
+.chat-toggle-icon { font-size: 1.3rem; }
 .chat-toggle-label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: rgba(226, 217, 243, 0.8);
+}
+
+/* ── MINUTES FLOAT BUTTON — above Caelum toggle ───────────────────────────── */
+.minutes-float-btn {
+    position: fixed;
+    bottom: 9.5rem;
+    left: 2rem;
+    z-index: 200;
+    width: 44px;
+    height: 44px;
+    background: rgba(30, 27, 75, 0.85);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.minutes-float-btn:hover {
+    background: rgba(88, 28, 135, 0.7);
+    border-color: rgba(168, 85, 247, 0.6);
+    transform: translateY(-2px);
+}
+
+/* ── SIGN OUT — bottom right ──────────────────────────────────────────────── */
+.signout-fixed {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 200;
+    background: transparent;
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.68rem;
+    color: rgba(226, 217, 243, 0.35);
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    font-family: 'Open Sans', sans-serif;
+    transition: all var(--transition);
+}
+.signout-fixed:hover {
+    color: rgba(226, 217, 243, 0.7);
+    border-color: rgba(168, 85, 247, 0.4);
 }
