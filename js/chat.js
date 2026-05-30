@@ -50,53 +50,6 @@ async function newSession() {
     }
 }
 
-// MINUTES POPUP
-async function openMinutesPopup() {
-    var popup   = document.getElementById('minutesPopup');
-    var overlay = document.getElementById('minutesPopupOverlay');
-    if (!popup || !overlay) return;
-
-    if (latestMinutesMeta) {
-        var date = new Date(latestMinutesMeta.session_date).toLocaleDateString('en-GB', {
-            day: 'numeric', month: 'long', year: 'numeric'
-        });
-        document.getElementById('minutesPopupTitle').textContent =
-            'Session ' + latestMinutesMeta.session_number + ' — ' + latestMinutesMeta.title;
-        document.getElementById('minutesPopupMeta').textContent =
-            date + ' · ' + latestMinutesMeta.status;
-    } else {
-        document.getElementById('minutesPopupTitle').textContent = 'Boardroom Minutes';
-        document.getElementById('minutesPopupMeta').textContent  = 'No sessions recorded yet';
-    }
-
-    document.getElementById('minutesPopupBody').innerHTML =
-        '<p style="color:var(--text-muted);font-style:italic;padding:1rem 0;">Loading...</p>';
-
-    overlay.classList.add('active');
-    popup.classList.add('active');
-
-    try {
-        var response = await fetch(WORKER_URL + '/minutes/latest');
-        var data     = await response.json();
-        if (data.content) {
-            document.getElementById('minutesPopupBody').innerHTML = marked.parse(data.content);
-        } else {
-            document.getElementById('minutesPopupBody').innerHTML =
-                '<p style="color:var(--text-muted);font-style:italic;">No minutes yet. Add your first .md file to boardroom/minutes/ in R2.</p>';
-        }
-    } catch (err) {
-        document.getElementById('minutesPopupBody').innerHTML =
-            '<p style="color:var(--text-muted);">Worker not deployed yet — minutes unavailable.</p>';
-    }
-}
-
-function closeMinutesPopup() {
-    var overlay = document.getElementById('minutesPopupOverlay');
-    var popup   = document.getElementById('minutesPopup');
-    if (overlay) overlay.classList.remove('active');
-    if (popup)   popup.classList.remove('active');
-}
-
 // SEND MESSAGE
 async function sendMessage() {
     if (isStreaming) return;
@@ -224,4 +177,92 @@ function appendMessage(role, content) {
 function scrollToBottom() {
     var c = document.getElementById('chatMessages');
     if (c) c.scrollTop = c.scrollHeight;
+}
+
+// ── ARTIFACT PANEL ────────────────────────────────────────────────────────────
+
+var artifactContent   = '';
+var artifactTitleText = '';
+
+function openArtifactPanel(title, markdownContent) {
+    artifactTitleText = title || 'Document';
+    artifactContent   = markdownContent || '';
+
+    var titleEl = document.getElementById('artifactTitle');
+    var bodyEl  = document.getElementById('artifactBody');
+
+    if (titleEl) titleEl.textContent = artifactTitleText;
+    if (bodyEl)  bodyEl.innerHTML    = marked.parse(artifactContent);
+
+    document.getElementById('artifactPanel').classList.add('open');
+    if (bodyEl) bodyEl.scrollTop = 0;
+}
+
+function closeArtifactPanel() {
+    document.getElementById('artifactPanel').classList.remove('open');
+}
+
+function updateArtifactContent(markdownContent) {
+    artifactContent = markdownContent || '';
+    var bodyEl = document.getElementById('artifactBody');
+    if (bodyEl) {
+        bodyEl.innerHTML = marked.parse(artifactContent);
+        bodyEl.scrollTop = 0;
+    }
+}
+
+function copyArtifact() {
+    var btn = document.getElementById('copyArtifactBtn');
+    navigator.clipboard.writeText(artifactContent).then(function() {
+        if (btn) {
+            btn.textContent = '✓ Copied';
+            setTimeout(function() { btn.textContent = '⎘ Copy'; }, 1500);
+        }
+    }).catch(function(err) {
+        console.error('Copy failed:', err);
+    });
+}
+
+function downloadArtifact() {
+    var filename = (artifactTitleText || 'document')
+        .replace(/[^a-z0-9\s]/gi, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .toLowerCase() + '.md';
+
+    var blob = new Blob([artifactContent], { type: 'text/markdown' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href     = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// MINUTES — fetches from Worker, opens in artifact panel
+async function openMinutesArtifact() {
+    openArtifactPanel('Loading…', '*Fetching latest boardroom minutes...*');
+
+    var title = 'Boardroom Minutes';
+
+    if (latestMinutesMeta) {
+        var date = new Date(latestMinutesMeta.session_date).toLocaleDateString('en-GB', {
+            day: 'numeric', month: 'long', year: 'numeric'
+        });
+        title = 'Session ' + latestMinutesMeta.session_number + ' — ' + latestMinutesMeta.title;
+    }
+
+    try {
+        var response = await fetch(WORKER_URL + '/minutes/latest');
+        var data     = await response.json();
+        if (data.content) {
+            openArtifactPanel(title, data.content);
+        } else {
+            openArtifactPanel(title,
+                '*No minutes yet. Add your first .md file to boardroom/minutes/ in R2.*');
+        }
+    } catch (err) {
+        openArtifactPanel('Boardroom Minutes',
+            '*Worker not deployed yet — minutes unavailable.*');
+    }
 }
