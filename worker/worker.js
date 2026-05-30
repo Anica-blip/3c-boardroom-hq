@@ -115,9 +115,6 @@ function corsHeaders(origin) {
         'https://threadcommand.center',
         'https://www.threadcommand.center',
         'https://anica-blip.github.io',
-        'http://localhost:3000',
-        'http://127.0.0.1:5500',
-        'http://127.0.0.1:8080',
     ];
     const allowedOrigin = allowed.includes(origin) ? origin : allowed[0];
     return {
