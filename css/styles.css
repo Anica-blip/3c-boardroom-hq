@@ -11,7 +11,6 @@
     --gold:           #ca8a04;
     --gold-light:     #fbbf24;
     --navy:           #0f0c29;
-    --navy-mid:       #1e1b4b;
     --text-primary:   #e2d9f3;
     --text-secondary: rgba(226, 217, 243, 0.6);
     --text-muted:     rgba(226, 217, 243, 0.35);
@@ -20,8 +19,8 @@
     --radius:         12px;
     --radius-sm:      8px;
     --transition:     0.2s ease;
-    --header-h:       44px;
-    --watermark-h:    22px;
+    --header-h:       106px;
+    --watermark-h:    20px;
     --sidebar-w:      480px;
 }
 
@@ -39,43 +38,82 @@ body {
     width: 100%;
     text-align: right;
     padding: 2px 16px;
-    font-size: 0.58rem;
-    opacity: 0.4;
-    letter-spacing: 0.02em;
+    font-size: 0.57rem;
+    opacity: 0.38;
     color: var(--text-secondary);
-    background: rgba(0,0,0,0.35);
+    background: rgba(0,0,0,0.4);
     pointer-events: none;
     height: var(--watermark-h);
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    letter-spacing: 0.02em;
 }
 
-/* ── HEADER — minimal, user badge only ────────────────────────────────────── */
+/* ── HEADER — shelf toolbar ───────────────────────────────────────────────── */
 .header {
     height: var(--header-h);
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding: 0 1rem;
-    background: rgba(8, 4, 24, 0.6);
-    border-bottom: 1px solid rgba(168, 85, 247, 0.12);
-    backdrop-filter: blur(12px);
+    justify-content: space-between;
+    padding: 0 1rem 0 1.25rem;
+    background: rgba(6, 3, 18, 0.82);
+    border-bottom: 1px solid rgba(168, 85, 247, 0.14);
+    backdrop-filter: blur(16px);
     position: sticky;
     top: 0;
     z-index: 100;
+    gap: 1rem;
 }
 
-.header-right { display: flex; align-items: center; gap: 0.75rem; }
+/* Shelf lives inside header, scrollable if many folders */
+.header-shelf {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 1;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    scrollbar-width: none;
+}
+.header-shelf::-webkit-scrollbar { display: none; }
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
 
 .user-badge {
-    font-size: 0.72rem;
-    color: var(--text-secondary);
+    font-size: 0.7rem;
+    color: rgba(226, 217, 243, 0.45);
     letter-spacing: 0.04em;
-    opacity: 0.7;
+    white-space: nowrap;
 }
 
-/* ── BOARDROOM MAIN ────────────────────────────────────────────────────────── */
+/* ── EXIT BUTTON — gold, right side, symbol only ──────────────────────────── */
+.exit-btn {
+    background: transparent;
+    border: 1px solid rgba(202, 138, 4, 0.3);
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--gold);
+    transition: all var(--transition);
+    flex-shrink: 0;
+}
+.exit-btn:hover {
+    border-color: var(--gold-light);
+    color: var(--gold-light);
+    background: rgba(202, 138, 4, 0.08);
+}
+
+/* ── BOARDROOM — full background, no padding needed for shelf ─────────────── */
 .boardroom {
     min-height: calc(100vh - var(--header-h) - var(--watermark-h));
     background-image: var(--boardroom-bg);
@@ -83,7 +121,6 @@ body {
     background-position: center;
     background-attachment: fixed;
     position: relative;
-    padding: 1.5rem 1.5rem 6rem;
 }
 
 .boardroom::before {
@@ -92,27 +129,48 @@ body {
     inset: 0;
     background: linear-gradient(
         to bottom,
-        rgba(8, 4, 24, 0.78) 0%,
-        rgba(8, 4, 24, 0.35) 45%,
-        rgba(8, 4, 24, 0.20) 65%,
-        rgba(8, 4, 24, 0.50) 100%
+        rgba(6, 3, 18, 0.82) 0%,
+        rgba(8, 4, 24, 0.3) 40%,
+        rgba(8, 4, 24, 0.18) 65%,
+        rgba(8, 4, 24, 0.45) 100%
     );
     pointer-events: none;
     z-index: 0;
 }
 
-.boardroom > * { position: relative; z-index: 1; }
-
-.section-label {
-    font-size: 0.68rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--purple-light);
-    margin-bottom: 0.75rem;
-    opacity: 0.75;
+/* ── CAELUM TOGGLE — small circle ─────────────────────────────────────────── */
+.chat-toggle-btn {
+    position: fixed;
+    bottom: 1.75rem;
+    left: 1.75rem;
+    z-index: 200;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: rgba(88, 28, 135, 0.9);
+    border: 2px solid rgba(168, 85, 247, 0.55);
+    cursor: pointer;
+    transition: all var(--transition);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 24px rgba(88, 28, 135, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0;
 }
-
-.empty-state { color: var(--text-muted); font-style: italic; }
+.chat-toggle-btn:hover {
+    border-color: rgba(168, 85, 247, 0.85);
+    transform: scale(1.08);
+    box-shadow: 0 8px 30px rgba(88, 28, 135, 0.65);
+}
+.chat-toggle-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
 
 /* ── BUTTONS ───────────────────────────────────────────────────────────────── */
 .btn-save {
@@ -152,7 +210,7 @@ body {
     font-family: 'Open Sans', sans-serif;
     transition: all var(--transition);
 }
-.btn-danger:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
+.btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
 
 /* ── MODALS ────────────────────────────────────────────────────────────────── */
 .modal {
@@ -195,41 +253,24 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.1rem 1.4rem;
+    padding: 1rem 1.4rem;
     border-bottom: 1px solid var(--glass-border);
 }
-.modal-header h2 {
-    font-size: 0.95rem;
-    font-weight: 400;
-    letter-spacing: 0.04em;
-    color: var(--text-primary);
-}
-.modal-close {
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: color var(--transition);
-}
+.modal-header h2 { font-size: 0.95rem; font-weight: 400; color: var(--text-primary); }
+.modal-close { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem; }
 .modal-close:hover { color: var(--text-primary); }
 
-.modal-body {
-    padding: 1.25rem 1.4rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.9rem;
-}
+.modal-body { padding: 1.25rem 1.4rem; display: flex; flex-direction: column; gap: 0.9rem; }
 
 /* ── FORMS ─────────────────────────────────────────────────────────────────── */
 .form-input {
     width: 100%;
-    padding: 0.65rem 0.9rem;
+    padding: 0.6rem 0.9rem;
     background: rgba(255,255,255,0.05);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.88rem;
+    font-size: 0.87rem;
     font-family: 'Open Sans', sans-serif;
     outline: none;
     transition: border-color var(--transition);
@@ -238,12 +279,12 @@ body {
 
 .form-textarea {
     width: 100%;
-    padding: 0.65rem 0.9rem;
+    padding: 0.6rem 0.9rem;
     background: rgba(255,255,255,0.05);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
-    font-size: 0.85rem;
+    font-size: 0.84rem;
     font-family: 'Courier New', monospace;
     resize: vertical;
     outline: none;
@@ -252,90 +293,6 @@ body {
 }
 .form-textarea:focus { border-color: var(--purple-light); }
 
-.form-actions { display: flex; gap: 0.65rem; margin-top: 0.4rem; }
+.form-actions { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
 
-/* ── CAELUM TOGGLE — bottom left ──────────────────────────────────────────── */
-.chat-toggle-btn {
-    position: fixed;
-    bottom: 2rem;
-    left: 2rem;
-    z-index: 200;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.7rem 0.9rem;
-    background: rgba(88, 28, 135, 0.85);
-    border: 1px solid rgba(168, 85, 247, 0.5);
-    border-radius: 14px;
-    cursor: pointer;
-    transition: all var(--transition);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 30px rgba(88, 28, 135, 0.4);
-}
-.chat-toggle-btn:hover {
-    background: rgba(109, 40, 217, 0.9);
-    transform: translateY(-2px);
-}
-.chat-toggle-img {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid rgba(168, 85, 247, 0.4);
-}
-.chat-toggle-icon { font-size: 1.3rem; }
-.chat-toggle-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: rgba(226, 217, 243, 0.8);
-}
-
-/* ── MINUTES FLOAT BUTTON — above Caelum toggle ───────────────────────────── */
-.minutes-float-btn {
-    position: fixed;
-    bottom: 9.5rem;
-    left: 2rem;
-    z-index: 200;
-    width: 44px;
-    height: 44px;
-    background: rgba(30, 27, 75, 0.85);
-    border: 1px solid rgba(168, 85, 247, 0.3);
-    border-radius: 12px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all var(--transition);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-.minutes-float-btn:hover {
-    background: rgba(88, 28, 135, 0.7);
-    border-color: rgba(168, 85, 247, 0.6);
-    transform: translateY(-2px);
-}
-
-/* ── SIGN OUT — bottom right ──────────────────────────────────────────────── */
-.signout-fixed {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    z-index: 200;
-    background: transparent;
-    border: 1px solid rgba(168, 85, 247, 0.15);
-    border-radius: 8px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.68rem;
-    color: rgba(226, 217, 243, 0.35);
-    cursor: pointer;
-    letter-spacing: 0.06em;
-    font-family: 'Open Sans', sans-serif;
-    transition: all var(--transition);
-}
-.signout-fixed:hover {
-    color: rgba(226, 217, 243, 0.7);
-    border-color: rgba(168, 85, 247, 0.4);
-}
+.empty-state { color: var(--text-muted); font-style: italic; }
