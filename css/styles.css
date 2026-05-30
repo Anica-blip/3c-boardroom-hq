@@ -1,10 +1,9 @@
 /* ─── 3C Boardroom HQ — Global Styles ─────────────────────────────────────── */
 
-:root {
-    /* Background — replace with your AI-generated boardroom image */
-    --boardroom-bg: url('../public/boardroom-bg.jpg');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap');
 
-    /* 3C Palette */
+:root {
+    --boardroom-bg:   url('../public/boardroom-bg.jpg');
     --purple-deep:    #3b0764;
     --purple-mid:     #6b21a8;
     --purple-light:   #a855f7;
@@ -13,38 +12,25 @@
     --gold-light:     #fbbf24;
     --navy:           #0f0c29;
     --navy-mid:       #1e1b4b;
-
-    /* Text */
     --text-primary:   #e2d9f3;
     --text-secondary: rgba(226, 217, 243, 0.6);
     --text-muted:     rgba(226, 217, 243, 0.35);
-
-    /* UI */
     --glass-bg:       rgba(15, 10, 40, 0.75);
     --glass-border:   rgba(168, 85, 247, 0.25);
     --radius:         12px;
     --radius-sm:      8px;
     --transition:     0.2s ease;
-
-    /* Layout */
     --header-h:       56px;
     --watermark-h:    24px;
-    --sidebar-w:      400px;
+    --sidebar-w:      480px;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-html, body {
-    height: 100%;
-    overflow-x: hidden;
-}
+html, body { height: 100%; overflow-x: hidden; }
 
 body {
-    font-family: 'Georgia', serif;
+    font-family: 'Open Sans', sans-serif;
     color: var(--text-primary);
     background: var(--navy);
 }
@@ -81,15 +67,8 @@ body {
     z-index: 100;
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-}
-
-.header-crest {
-    font-size: 1.4rem;
-}
+.header-left { display: flex; align-items: center; gap: 0.6rem; }
+.header-crest { font-size: 1.4rem; }
 
 .header-title {
     font-size: 1rem;
@@ -98,11 +77,7 @@ body {
     font-weight: 400;
 }
 
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
+.header-right { display: flex; align-items: center; gap: 0.75rem; }
 
 .user-badge {
     font-size: 0.75rem;
@@ -147,10 +122,7 @@ body {
     z-index: 0;
 }
 
-.boardroom > * {
-    position: relative;
-    z-index: 1;
-}
+.boardroom > * { position: relative; z-index: 1; }
 
 /* ── SECTION LABELS ────────────────────────────────────────────────────────── */
 .section-label {
@@ -162,11 +134,7 @@ body {
     opacity: 0.8;
 }
 
-/* Minutes now live in the sidebar — no strip on main page */
-.empty-state {
-    color: var(--text-muted);
-    font-style: italic;
-}
+.empty-state { color: var(--text-muted); font-style: italic; }
 
 /* ── BUTTONS ───────────────────────────────────────────────────────────────── */
 .btn-save {
@@ -177,6 +145,7 @@ body {
     color: white;
     cursor: pointer;
     font-size: 0.88rem;
+    font-family: 'Open Sans', sans-serif;
     transition: background var(--transition);
 }
 
@@ -190,6 +159,7 @@ body {
     color: var(--text-secondary);
     cursor: pointer;
     font-size: 0.88rem;
+    font-family: 'Open Sans', sans-serif;
     transition: all var(--transition);
 }
 
@@ -203,6 +173,7 @@ body {
     color: rgba(239, 68, 68, 0.8);
     cursor: pointer;
     font-size: 0.88rem;
+    font-family: 'Open Sans', sans-serif;
     transition: all var(--transition);
 }
 
@@ -219,9 +190,7 @@ body {
     padding: 1rem;
 }
 
-.modal.active {
-    display: flex;
-}
+.modal.active { display: flex; }
 
 .modal-overlay {
     display: none;
@@ -292,7 +261,7 @@ body {
     border-radius: var(--radius-sm);
     color: var(--text-primary);
     font-size: 0.9rem;
-    font-family: inherit;
+    font-family: 'Open Sans', sans-serif;
     outline: none;
     transition: border-color var(--transition);
 }
@@ -316,17 +285,13 @@ body {
 
 .form-textarea:focus { border-color: var(--purple-light); }
 
-.form-actions {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: 0.5rem;
-}
+.form-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
 
-/* ── CHAT TOGGLE BUTTON ────────────────────────────────────────────────────── */
+/* ── CHAT TOGGLE BUTTON — LEFT side ───────────────────────────────────────── */
 .chat-toggle-btn {
     position: fixed;
     bottom: 2rem;
-    right: 2rem;
+    left: 2rem;
     z-index: 200;
     display: flex;
     flex-direction: column;
