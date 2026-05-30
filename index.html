@@ -19,38 +19,32 @@
         Designed and Built with ❤️ by Claude (Anthropic) × Chef Anica · 3C Thread To Success™ Cooking Lab 🧪👨‍🍳
     </div>
 
-    <!-- Minimal Header — user badge only, no title -->
+    <!-- Header = shelf toolbar -->
     <header class="header">
-        <div></div>
+        <div class="header-shelf">
+            <div class="bookshelf" id="bookshelf"></div>
+            <button class="btn-add-folder" onclick="showAddFolderModal()" title="New Folder">+</button>
+        </div>
         <div class="header-right">
             <span class="user-badge" id="userBadge">—</span>
+            <!-- Gold exit symbol — right side -->
+            <button class="exit-btn" onclick="supabaseAPI.signOut()" title="Sign Out">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </button>
         </div>
     </header>
 
-    <!-- Boardroom Main -->
-    <main class="boardroom">
-        <section class="bookshelf-section">
-            <div class="section-label">📚 The Shelf</div>
-            <div class="bookshelf" id="bookshelf"></div>
-            <button class="btn-add-folder" onclick="showAddFolderModal()">+ New Folder</button>
-        </section>
-    </main>
+    <!-- Boardroom — background image only, no shelf section -->
+    <main class="boardroom"></main>
 
-    <!-- Caelum Chat Toggle — bottom left -->
-    <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleSidebar()">
+    <!-- Caelum Toggle — small circle, bottom left -->
+    <button class="chat-toggle-btn" onclick="toggleSidebar()" title="Open Caelum">
         <img src="public/caelum.png" alt="Caelum" class="chat-toggle-img"
-             onerror="this.outerHTML='<span class=\'chat-toggle-icon\'>🌌</span>'">
-        <span class="chat-toggle-label">Caelum</span>
-    </button>
-
-    <!-- Minutes Float Button — bottom left above Caelum -->
-    <button class="minutes-float-btn" onclick="openMinutesPopup()" title="View Latest Minutes">
-        📋
-    </button>
-
-    <!-- Sign Out — bottom right -->
-    <button class="signout-fixed" onclick="supabaseAPI.signOut()" title="Sign Out">
-        ╰┈➤ exit
+             onerror="this.outerHTML='<span style=\'font-size:1.1rem\'>🌌</span>'">
     </button>
 
     <!-- ── Chat Sidebar — LEFT ───────────────────────────────────────────── -->
@@ -58,34 +52,25 @@
         <div class="sidebar-header">
             <div class="sidebar-title">
                 <img src="public/caelum.png" alt="Caelum" class="sidebar-avatar"
-                     onerror="this.outerHTML='<span style=\'font-size:1.4rem\'>🌌</span>'">
+                     onerror="this.outerHTML='<span style=\'font-size:1.2rem\'>🌌</span>'">
                 <div>
                     <div class="sidebar-name">Caelum</div>
                     <div class="sidebar-role">Chief Advisor</div>
                 </div>
             </div>
             <div class="sidebar-controls">
+                <!-- Minutes icon — always visible -->
+                <button class="btn-minutes" onclick="openMinutesPopup()" title="View latest minutes">📋</button>
+                <!-- New session -->
                 <button class="btn-new-session" onclick="newSession()" title="New Session">✦</button>
+                <!-- Minimize — keep session, hide panel -->
+                <button class="btn-minimize" onclick="minimizeSidebar()" title="Minimize">−</button>
+                <!-- Close -->
                 <button class="btn-close-sidebar" onclick="toggleSidebar()">✕</button>
             </div>
         </div>
 
         <div class="session-label" id="sessionLabel">No active session</div>
-
-        <!-- Minutes Card -->
-        <div class="minutes-card" id="minutesCard" style="display:none;">
-            <div class="minutes-card-inner" onclick="openMinutesPopup()">
-                <div class="minutes-card-header">
-                    <span class="minutes-card-icon">📋</span>
-                    <div>
-                        <div class="minutes-card-title" id="minutesCardTitle">Latest Minutes</div>
-                        <div class="minutes-card-meta" id="minutesCardMeta"></div>
-                    </div>
-                    <span class="minutes-card-read">Read →</span>
-                </div>
-                <div class="minutes-card-preview" id="minutesCardPreview"></div>
-            </div>
-        </div>
 
         <!-- Skill indicator -->
         <div class="skill-indicator" id="skillIndicator" style="display:none;">
@@ -102,18 +87,13 @@
         </div>
 
         <div class="chat-input-area">
-            <textarea
-                id="chatInput"
-                class="chat-input"
-                placeholder="Brief Caelum..."
-                rows="2"
-                onkeydown="handleChatKeydown(event)"
-            ></textarea>
+            <textarea id="chatInput" class="chat-input" placeholder="Brief Caelum..."
+                rows="2" onkeydown="handleChatKeydown(event)"></textarea>
             <button class="btn-send" onclick="sendMessage()" id="sendBtn">↑</button>
         </div>
     </aside>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="minimizeSidebar()"></div>
 
     <!-- ── Minutes Popup ─────────────────────────────────────────────────── -->
     <div class="minutes-popup-overlay" id="minutesPopupOverlay" onclick="closeMinutesPopup()"></div>
