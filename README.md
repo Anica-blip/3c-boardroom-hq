@@ -1,5 +1,7 @@
 # 🌌 3C Boardroom HQ
 
+> ⚖️ This repository is protected under a binding [Legal Disclaimer](./LEGAL_DISCLAIMER.md) that governs all use, cloning, and forking from the date of inception. Please read before use.
+
 > The private strategic headquarters of the 3C Thread To Success™ ecosystem.
 > A boardroom-style workspace where Chef Anica and Caelum meet to plan, file, and decide.
 
