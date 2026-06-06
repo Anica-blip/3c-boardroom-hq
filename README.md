@@ -39,6 +39,11 @@ It is where brand decisions are made, strategy is filed, and Caelum operates as 
 
 ---
 
+## 🎨 Artwork
+Background AI Image generated via [ChatGPT](https://chatgpt.com) by OpenAI
+
+---
+
 ## 🎨 Credits
 
 *Designed and Built with ❤️ by Claude (Anthropic) × Chef Anica · 3C Thread To Success™ Cooking Lab* 🧪👨‍🍳
