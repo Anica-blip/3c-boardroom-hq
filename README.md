@@ -9,17 +9,18 @@
 
 **⚠️ Intellectual Property Notice**
 This repository is open source under the MIT License — the code skeleton is free to clone and adapt.
-The 3C Thread To Success™ brand, including its name, structure, characters (Caelum, Aurion, Jan, Anica), philosophy, and overall ecosystem identity remains the intellectual property of the creator and is **not** included in this license.
+The 3C Thread To Success™ brand, including its name, structure, characters (Caelum, Aurion, Jan, Anica, Casey), philosophy, and overall ecosystem identity remains the intellectual property of the creator and is **not** included in this license.
 Commercial use of the brand or replication of the ecosystem identity is not permitted without permission.
 
 ---
 
 ## 🎭 The 3C Ecosystem
 
-This project is part of a larger system built around three core identities:
+This project is part of a larger system built around four core identities:
 
 **Aurion** → Engagement & Experience — 3C Mascot, community voice, diamond-energy guide
 **Caelum** → Structure & Direction — Chief Advisor, PR Manager, Brand Integrity Officer
+**Casey** → Creative Direction — Stage Lab lead for games, video, and stage content
 **Anica (Founder)** → Authority & Vision — Systems Strategist, Project Architect, the Chef
 
 Together, they create a balanced environment for growth, learning, and progression.
@@ -36,6 +37,27 @@ It is where brand decisions are made, strategy is filed, and Caelum operates as 
 - 📚 **Bookshelf** — labeled folders for minutes, brand voice, character files, campaigns and more
 - 📋 **Session Minutes** — dated, checkbox-tracked boardroom decisions
 - 🔐 **GitHub OAuth** — secured access via Supabase authentication
+
+---
+
+## 🏅 3C Member Journey
+
+Members progress through four tiers — each one a deeper level of growth and leadership:
+
+| Badge | Tier | Identity |
+|---|---|---|
+| 🦅 Falcon | Foundation | The Seeker |
+| 🐆 Panther | Discovery | The Discoverer |
+| 🐺 Wolf | Building | The Builder |
+| 🦁 Lion | Leadership | The Leader |
+
+---
+
+## 🧠 The Active Thinking Approach (ATA)
+
+3C is built on the **Active Thinking Approach (ATA)** — a metacognitive teaching methodology that helps people understand how they think, why they react the way they do, and how to lead themselves with clarity and intention.
+
+*Think it. Do it. Own it.* is ATA in three words.
 
 ---
 
