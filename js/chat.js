@@ -131,6 +131,19 @@ async function streamCaelumResponse() {
     }
 
     bubble.classList.remove('streaming');
+
+    // DOCUMENT ROUTING — detect finished deliverable wrapped by Caelum
+    var DOC_REGEX = /<<<DOCUMENT_START:([^>]*)>>>([\s\S]*?)<<<DOCUMENT_END>>>/;
+    var docMatch  = fullResponse.match(DOC_REGEX);
+    if (docMatch) {
+        var docTitle   = docMatch[1].trim() || 'Document';
+        var docContent = docMatch[2].trim();
+        var chatText   = fullResponse.replace(DOC_REGEX, '').trim();
+        bubble.textContent = (chatText ? chatText + '\n\n' : '') + '📄 ' + docTitle + ' — ready in the panel.';
+        fullResponse = chatText + '\n\n[Document delivered: ' + docTitle + ']';
+        openArtifactPanel(docTitle, docContent);
+    }
+
     isStreaming = false;
     document.getElementById('sendBtn').disabled = false;
 
