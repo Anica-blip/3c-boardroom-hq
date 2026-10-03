@@ -79,12 +79,16 @@ wrangler login
 cd worker
 ```
 
-3. Add your secrets:
+3. Add your secrets. The Worker refuses every request until `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `ALLOWED_USER_ID` are set:
 ```bash
 wrangler secret put CLAUDE_API_KEY
-wrangler secret put SUPABASE_SERVICE_ROLE_KEY
 wrangler secret put SUPABASE_URL
+wrangler secret put SUPABASE_ANON_KEY
+wrangler secret put ALLOWED_USER_ID
 ```
+   - `SUPABASE_URL` and `SUPABASE_ANON_KEY`: the same values as in `config.js` (Supabase → Settings → API)
+   - `ALLOWED_USER_ID`: the User UID of the one account that is allowed in (Supabase → Authentication → Users → open your GitHub user → User UID)
+   - Every request to the Worker must carry that account's sign-in. Anyone else is refused.
 
 4. Deploy:
 ```bash
@@ -108,7 +112,7 @@ The Worker reads these files from the `3c-boardroom-hq` bucket. If one is missin
 | `skills/brand-voice.md` | Skill for brand, voice, copy, caption, post |
 | `skills/pr-manager.md` | Skill for pr, press, announcement |
 | `boardroom/youtube/podcast-roadmap.md` | Skill for podcast |
-| `3c-lifeline/overview.md`, `aurion.md`, `jan.md`, `anica.md` | Skills for lifeline, aurion, jan, anica |
+| `3c-lifeline/overview.md`, `aurion.md`, `jan.md`, `anica.md`, `casey.md` | Skills for lifeline, aurion, jan, anica, casey |
 | `3c-members/overview.md`, `falcon.md`, `panther.md`, `wolf.md`, `lion.md` | Skills for member, persona, falcon, panther, wolf, lion |
 | `brand-kit/brand-guidelines.md` | Skill for logo, philosophy, culture |
 
