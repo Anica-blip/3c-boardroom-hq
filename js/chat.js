@@ -5,6 +5,23 @@ var conversationHistory = [];
 var isStreaming         = false;
 var latestMinutesMeta   = null;
 
+// WORKER ACCESS - every call to the Worker carries the signed-in user's Supabase token
+async function workerHeaders(extra) {
+    var headers = Object.assign({}, extra || {});
+    var result  = await supabaseAPI.client.auth.getSession();
+    var session = result && result.data ? result.data.session : null;
+    if (session && session.access_token) {
+        headers['Authorization'] = 'Bearer ' + session.access_token;
+    }
+    return headers;
+}
+
+function workerAuthMessage(status) {
+    if (status === 401) return 'Your session has expired. Please sign in again.';
+    if (status === 403) return 'This account does not have access to the Boardroom.';
+    return '';
+}
+
 // SIDEBAR TOGGLE
 function toggleSidebar() {
     var sidebar = document.getElementById('chatSidebar');
@@ -89,9 +106,17 @@ async function streamCaelumResponse() {
     try {
         var response = await fetch(WORKER_URL + '/chat', {
             method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await workerHeaders({ 'Content-Type': 'application/json' }),
             body:    JSON.stringify({ messages: conversationHistory })
         });
+
+        if (response.status === 401 || response.status === 403) {
+            bubble.textContent = workerAuthMessage(response.status);
+            bubble.classList.remove('streaming');
+            isStreaming = false;
+            document.getElementById('sendBtn').disabled = false;
+            return;
+        }
 
         if (!response.ok) throw new Error('Worker error: ' + response.status);
 
@@ -266,7 +291,11 @@ async function openMinutesArtifact() {
     }
 
     try {
-        var response = await fetch(WORKER_URL + '/minutes/latest');
+        var response = await fetch(WORKER_URL + '/minutes/latest', { headers: await workerHeaders() });
+        if (response.status === 401 || response.status === 403) {
+            openArtifactPanel('Boardroom Minutes', '*' + workerAuthMessage(response.status) + '*');
+            return;
+        }
         var data     = await response.json();
         if (data.content) {
             openArtifactPanel(title, data.content);
