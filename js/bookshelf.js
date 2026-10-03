@@ -5,6 +5,23 @@ let currentFolderR2   = '';
 let currentFileId     = null;
 let currentFileR2Key  = null;
 
+// ── WORKER ACCESS ─────────────────────────────────────────────────────────────
+// Every call to the Worker carries the signed-in user's Supabase token.
+async function shelfHeaders(extra) {
+    const headers = Object.assign({}, extra || {});
+    const { data } = await supabaseAPI.client.auth.getSession();
+    if (data && data.session && data.session.access_token) {
+        headers['Authorization'] = 'Bearer ' + data.session.access_token;
+    }
+    return headers;
+}
+
+function shelfAuthMessage(status) {
+    if (status === 401) return 'Your session has expired. Please sign in again.';
+    if (status === 403) return 'This account does not have access to the Boardroom.';
+    return '';
+}
+
 // ── LOAD BOOKSHELF ────────────────────────────────────────────────────────────
 async function loadBookshelf() {
     const shelf   = document.getElementById('bookshelf');
@@ -103,11 +120,15 @@ async function saveNewFile() {
     // Upload content to R2 via worker (if content provided)
     if (content) {
         try {
-            await fetch(`${WORKER_URL}/files/${encodeURIComponent(r2Key)}`, {
+            const res = await fetch(`${WORKER_URL}/files/${encodeURIComponent(r2Key)}`, {
                 method:  'POST',
-                headers: { 'Content-Type': 'text/plain' },
+                headers: await shelfHeaders({ 'Content-Type': 'text/plain' }),
                 body:    content
             });
+            if (res.status === 401 || res.status === 403) {
+                alert(shelfAuthMessage(res.status));
+                return;
+            }
         } catch (err) {
             console.error('❌ R2 upload error:', err);
         }
@@ -135,7 +156,13 @@ async function openFileView(fileId, title, r2Key) {
     }
 
     try {
-        const response = await fetch(`${WORKER_URL}/files/${encodeURIComponent(r2Key)}`);
+        const response = await fetch(`${WORKER_URL}/files/${encodeURIComponent(r2Key)}`, {
+            headers: await shelfHeaders()
+        });
+        if (response.status === 401 || response.status === 403) {
+            document.getElementById('fileViewContent').value = '⚠️ ' + shelfAuthMessage(response.status);
+            return;
+        }
         const data     = await response.json();
         document.getElementById('fileViewContent').value = data.content || '';
     } catch (err) {
@@ -152,11 +179,15 @@ async function saveFileEdit() {
     // Upload updated content to R2
     if (currentFileR2Key && content) {
         try {
-            await fetch(`${WORKER_URL}/files/${encodeURIComponent(currentFileR2Key)}`, {
+            const res = await fetch(`${WORKER_URL}/files/${encodeURIComponent(currentFileR2Key)}`, {
                 method:  'POST',
-                headers: { 'Content-Type': 'text/plain' },
+                headers: await shelfHeaders({ 'Content-Type': 'text/plain' }),
                 body:    content
             });
+            if (res.status === 401 || res.status === 403) {
+                alert(shelfAuthMessage(res.status));
+                return;
+            }
         } catch (err) {
             console.error('❌ R2 save error:', err);
         }
