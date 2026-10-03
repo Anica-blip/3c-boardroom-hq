@@ -1,5 +1,6 @@
 // ─── 3C Boardroom HQ — Cloudflare Worker ─────────────────────────────────────
-// Secrets: CLAUDE_API_KEY, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL
+// Secrets: CLAUDE_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY, ALLOWED_USER_ID
+// Access: every request except the OPTIONS preflight needs the Supabase login of ALLOWED_USER_ID
 // R2 binding: BOARDROOM_BUCKET → bucket: 3c-boardroom-hq
 // Deploy: wrangler deploy (from worker/ folder directly — never via GitHub Actions)
 
@@ -76,6 +77,7 @@ const SKILL_MAP = {
     aurion:       '3c-lifeline/aurion.md',
     jan:          '3c-lifeline/jan.md',
     anica:        '3c-lifeline/anica.md',
+    casey:        '3c-lifeline/casey.md',
     lifeline:     '3c-lifeline/overview.md',
     falcon:       '3c-members/falcon.md',
     panther:      '3c-members/panther.md',
@@ -133,6 +135,46 @@ function corsHeaders(origin) {
     };
 }
 
+function jsonResponse(body, status, origin) {
+    return new Response(JSON.stringify(body), {
+        status,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) }
+    });
+}
+
+// ACCESS CHECK: runs before every route except the OPTIONS preflight.
+// The browser sends the signed-in user's Supabase token as "Authorization: Bearer <token>".
+// Supabase confirms the token is valid, then the user ID must match ALLOWED_USER_ID.
+// Returns a refusal Response (401, 403, 500 or 503), or null when the caller is allowed.
+async function checkAccess(request, env, origin) {
+    if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY || !env.ALLOWED_USER_ID) {
+        return jsonResponse({ error: 'Access check is not configured' }, 500, origin);
+    }
+
+    const match = (request.headers.get('Authorization') || '').match(/^Bearer\s+(\S+)$/i);
+    if (!match) return jsonResponse({ error: 'Sign in required' }, 401, origin);
+
+    let user;
+    try {
+        const res = await fetch(env.SUPABASE_URL.replace(/\/+$/, '') + '/auth/v1/user', {
+            headers: { 'Authorization': 'Bearer ' + match[1], 'apikey': env.SUPABASE_ANON_KEY }
+        });
+        if (res.status === 401 || res.status === 403) {
+            return jsonResponse({ error: 'Sign in required' }, 401, origin);
+        }
+        if (!res.ok) throw new Error('Supabase auth ' + res.status);
+        user = await res.json();
+    } catch {
+        return jsonResponse({ error: 'Could not verify sign-in. Try again.' }, 503, origin);
+    }
+
+    const allowedId = String(env.ALLOWED_USER_ID).trim().toLowerCase();
+    if (!user || String(user.id || '').toLowerCase() !== allowedId) {
+        return jsonResponse({ error: 'This account does not have access' }, 403, origin);
+    }
+    return null;
+}
+
 export default {
     async fetch(request, env) {
         const origin = request.headers.get('Origin') || '';
@@ -143,6 +185,9 @@ export default {
         }
 
         try {
+            const denied = await checkAccess(request, env, origin);
+            if (denied) return denied;
+
             if (url.pathname === '/chat' && request.method === 'POST')
                 return handleChat(request, env, origin);
             if (url.pathname === '/minutes/latest' && request.method === 'GET')
