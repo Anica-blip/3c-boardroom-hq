@@ -18,12 +18,15 @@ cd 3c-boardroom-hq
 1. Open your existing **3C Control Center** Supabase project
 2. Go to **SQL Editor**
 3. Copy and run the full contents of `sql/schema.sql`
-4. Confirm all 5 tables are created:
+4. Confirm all 6 tables are created:
    - `caelum_sessions`
    - `caelum_messages`
    - `caelum_folders`
    - `caelum_files`
    - `caelum_minutes`
+   - `caelum_decisions`
+
+The script only creates what is missing, so it is safe to run again.
 
 ---
 
@@ -93,13 +96,33 @@ wrangler deploy
 
 ---
 
-## 7. Add Favicon
+## 7. Add Caelum's Files to R2
+
+The Worker reads these files from the `3c-boardroom-hq` bucket. If one is missing, Caelum still replies, but without it he has less to work from.
+
+| R2 path | What the Worker does with it |
+|---|---|
+| `brain/caelum-core.md` | Caelum's brain file, read on every reply |
+| `boardroom/minutes/*.md` | The file whose name sorts last is loaded as the latest minutes. Start names with the date (for example `2026-10-03-session.md`) |
+| `skills/campaign-strategy.md` | Skill for campaign, youtube, tiktok, shorts, video |
+| `skills/brand-voice.md` | Skill for brand, voice, copy, caption, post |
+| `skills/pr-manager.md` | Skill for pr, press, announcement |
+| `boardroom/youtube/podcast-roadmap.md` | Skill for podcast |
+| `3c-lifeline/overview.md`, `aurion.md`, `jan.md`, `anica.md` | Skills for lifeline, aurion, jan, anica |
+| `3c-members/overview.md`, `falcon.md`, `panther.md`, `wolf.md`, `lion.md` | Skills for member, persona, falcon, panther, wolf, lion |
+| `brand-kit/brand-guidelines.md` | Skill for logo, philosophy, culture |
+
+Only one skill file loads per message, chosen from the keywords in Chef's message.
+
+---
+
+## 8. Add Favicon
 
 Drop your `favicon.png` into the `public/` folder.
 
 ---
 
-## 8. Add Background Image
+## 9. Add Background Image
 
 1. Get your AI-generated boardroom background image
 2. Save it as `public/boardroom-bg.jpg` (or any format)
@@ -109,7 +132,7 @@ Drop your `favicon.png` into the `public/` folder.
 
 ---
 
-## 9. Enable GitHub Pages
+## 10. Enable GitHub Pages
 
 1. Push all files to GitHub
 2. Go to repo **Settings → Pages**
@@ -119,7 +142,7 @@ Drop your `favicon.png` into the `public/` folder.
 
 ---
 
-## 10. Custom Domain (When Ready)
+## 11. Custom Domain (When Ready)
 
 1. Purchase your domain
 2. In Cloudflare DNS, point the domain to your GitHub Pages IP
@@ -131,11 +154,12 @@ Drop your `favicon.png` into the `public/` folder.
 
 ## ✅ Checklist
 
-- [ ] Supabase tables created
+- [ ] Supabase tables created (all 6)
 - [ ] GitHub OAuth enabled in Supabase
 - [ ] config.js filled in
 - [ ] R2 bucket `3c-boardroom-hq` created
 - [ ] Worker deployed with secrets
+- [ ] Caelum's files added to R2
 - [ ] favicon.png added to public/
 - [ ] Background image added
 - [ ] GitHub Pages enabled
