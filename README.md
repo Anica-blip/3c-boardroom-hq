@@ -66,7 +66,7 @@ It is where brand decisions are made, strategy is filed, and Caelum operates as 
 | **Cloudflare Worker** | Streams Caelum's replies from Claude (Anthropic), and reads and saves Boardroom files |
 | **Cloudflare R2** | Bucket `3c-boardroom-hq`: brain file, skills, minutes and bookshelf files |
 
-The Supabase service key and the Claude API key live only in the Worker as secrets, never in the browser.
+The Claude API key lives only in the Worker as a secret, never in the browser. The Worker checks the Supabase login on every request and only lets Chef's account through.
 
 ---
 
