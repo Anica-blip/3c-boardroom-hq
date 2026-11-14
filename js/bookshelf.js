@@ -22,8 +22,59 @@ function shelfAuthMessage(status) {
     return '';
 }
 
-// ── LOAD BOOKSHELF ────────────────────────────────────────────────────────────
-async function loadBookshelf() {
+// ── OFFICE SHELF (placeholders) ───────────────────────────────────────────────
+// Skeleton only. Later each box connects to its shelf in Source Notes:
+// Caelum / Jan / Casey open their own agent folder, Anica opens Source Notes.
+var OFFICE_SHELF = [
+    { key: 'caelum', name: 'Caelum', color: '#6B21A8', ink: '#ffffff', note: "Caelum's folder" },
+    { key: 'jan',    name: 'Jan',    color: '#6B21A8', ink: '#ffffff', note: "Jan's Writing Lab folder" },
+    { key: 'casey',  name: 'Casey',  color: '#6B21A8', ink: '#ffffff', note: "Casey's Stage Lab folder" },
+    { key: 'anica',  name: 'Anica',  color: '#C4B5FD', ink: '#3b0764', note: 'Source Notes' }
+];
+
+var CHAT_ICON_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+
+function loadBookshelf() {
+    var shelf = document.getElementById('bookshelf');
+    shelf.innerHTML = OFFICE_SHELF.map(function(box) {
+        return '<div class="folder-spine office-box"' +
+            ' style="background: linear-gradient(180deg, ' + box.color + 'dd 0%, ' + box.color + '99 100%); color: ' + box.ink + ';"' +
+            ' role="button" tabindex="0" aria-label="' + box.name + '"' +
+            ' onclick="openOfficeBox(\'' + box.key + '\')">' +
+            '<div class="folder-label-area">' +
+            '<span class="folder-spine-label office-box-name">' + box.name + '</span>' +
+            '</div>' +
+            '<div class="folder-body">' + CHAT_ICON_SVG + '</div>' +
+            '</div>';
+    }).join('');
+}
+
+function openOfficeBox(key) {
+    var box = OFFICE_SHELF.find(function(b) { return b.key === key; });
+    if (!box) return;
+    showShelfToast(box.name + ' — ' + box.note + ' is not connected yet.');
+}
+
+var shelfToastTimer = null;
+function showShelfToast(message) {
+    var toast = document.getElementById('shelfToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'shelfToast';
+        toast.className = 'shelf-toast';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(shelfToastTimer);
+    shelfToastTimer = setTimeout(function() { toast.classList.remove('show'); }, 2600);
+}
+
+// ── LOAD BOOKSHELF FROM SUPABASE (previous version, kept for reconnecting later)
+async function loadBookshelfFromSupabase() {
     const shelf   = document.getElementById('bookshelf');
     const folders = await supabaseAPI.getFolders();
 
