@@ -26,28 +26,28 @@ function shelfAuthMessage(status) {
 // Skeleton only. Later each box connects to its shelf in Source Notes:
 // Caelum / Jan / Casey open their own agent folder, Anica opens Source Notes.
 var OFFICE_SHELF = [
-    { key: 'caelum', name: 'Caelum', color: '#6B21A8', ink: '#ffffff', note: "Caelum's folder" },
-    { key: 'jan',    name: 'Jan',    color: '#6B21A8', ink: '#ffffff', note: "Jan's Writing Lab folder" },
-    { key: 'casey',  name: 'Casey',  color: '#6B21A8', ink: '#ffffff', note: "Casey's Stage Lab folder" },
-    { key: 'anica',  name: 'Anica',  color: '#C4B5FD', ink: '#3b0764', note: 'Source Notes' }
+    { key: 'caelum', name: 'Caelum', neon: '#3D7BFF', rgb: '61,123,255',  avatar: 'public/caelum.png', note: "Caelum's folder" },
+    { key: 'jan',    name: 'Jan',    neon: '#22E6A8', rgb: '34,230,168',  avatar: 'public/jan.png',    note: "Jan's Writing Lab folder" },
+    { key: 'casey',  name: 'Casey',  neon: '#FFB41F', rgb: '255,180,31',  avatar: 'public/casey.png',  note: "Casey's Stage Lab folder" },
+    { key: 'anica',  name: 'Anica',  neon: '#D4A8FF', rgb: '212,168,255', avatar: 'public/anica.png',  note: 'Source Notes' }
 ];
-
-var CHAT_ICON_SVG =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
-    '<path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
 
 function loadBookshelf() {
     var shelf = document.getElementById('bookshelf');
     shelf.innerHTML = OFFICE_SHELF.map(function(box) {
         return '<div class="folder-spine office-box"' +
-            ' style="background: linear-gradient(180deg, ' + box.color + 'dd 0%, ' + box.color + '99 100%); color: ' + box.ink + ';"' +
+            ' style="--neon: ' + box.neon + '; --rgb: ' + box.rgb + ';"' +
             ' role="button" tabindex="0" aria-label="' + box.name + '"' +
             ' onclick="openOfficeBox(\'' + box.key + '\')">' +
             '<div class="folder-label-area">' +
-            '<span class="folder-spine-label office-box-name">' + box.name + '</span>' +
+            '<span class="folder-spine-label office-label">' +
+            '<span class="office-src">SOURCE</span>' +
+            '<span class="office-nm">' + box.name + '</span>' +
+            '</span>' +
             '</div>' +
-            '<div class="folder-body">' + CHAT_ICON_SVG + '</div>' +
+            '<div class="folder-body">' +
+            '<img class="office-avatar" src="' + box.avatar + '" alt="' + box.name + '">' +
+            '</div>' +
             '</div>';
     }).join('');
 }
