@@ -26,7 +26,9 @@
     <header class="header">
         <div class="header-shelf">
             <div class="bookshelf" id="bookshelf"></div>
+            <!-- Add-folder (+) hidden while the Office Shelf is placeholders. Restore when shelves connect to Source Notes.
             <button class="btn-add-folder" onclick="showAddFolderModal()" title="New Folder">+</button>
+            -->
         </div>
         <div class="header-right">
             <span class="user-badge" id="userBadge">—</span>
@@ -36,12 +38,30 @@
     <!-- Boardroom — background image only, no shelf section -->
     <main class="boardroom"></main>
 
-    <!-- Caelum Toggle — 3C chat button, small circle, bottom left -->
-    <button class="chat-toggle-btn" onclick="toggleSidebar()" title="Open Caelum">
-        <img src="public/3c-chat-button.png" alt="Open Caelum"
-             style="width:54px;height:54px;object-fit:contain;display:block;"
-             onerror="this.outerHTML='<span style=\'font-size:1.4rem;line-height:1\'>💎</span>'">
-    </button>
+    <!-- Chat Dock — Caelum, Jan, Casey open the chat sidebar; Champ links out to Claude -->
+    <div class="chat-dock">
+        <button class="chat-toggle-btn" onclick="openAgentChat('caelum')" title="Open Caelum">
+            <img src="public/3c-chat-button.png" alt="Open Caelum"
+                 style="width:54px;height:54px;object-fit:contain;display:block;"
+                 onerror="this.outerHTML='<span style=\'font-size:1.4rem;line-height:1\'>💎</span>'">
+        </button>
+        <button class="chat-toggle-btn" onclick="openAgentChat('jan')" title="Open Jan">
+            <img src="public/3c-chat-button-jan.png" alt="Open Jan"
+                 style="width:54px;height:54px;object-fit:contain;display:block;"
+                 onerror="this.outerHTML='<span style=\'font-size:1.4rem;line-height:1\'>✍️</span>'">
+        </button>
+        <button class="chat-toggle-btn" onclick="openAgentChat('casey')" title="Open Casey">
+            <img src="public/3c-chat-button-casey.png" alt="Open Casey"
+                 style="width:54px;height:54px;object-fit:contain;display:block;"
+                 onerror="this.outerHTML='<span style=\'font-size:1.4rem;line-height:1\'>🎬</span>'">
+        </button>
+        <a class="chat-toggle-btn" href="https://claude.ai/project/01a10132-2751-7193-a76c-31c18796fd5e"
+           target="_blank" rel="noopener noreferrer" title="Open Champ (Claude)">
+            <img src="public/3c-chat-button-champ.png" alt="Open Champ"
+                 style="width:54px;height:54px;object-fit:contain;display:block;"
+                 onerror="this.outerHTML='<span style=\'font-size:1.4rem;line-height:1\'>🧪</span>'">
+        </a>
+    </div>
 
     <!-- Exit — fixed bottom right, gold symbol -->
     <button class="exit-btn" onclick="supabaseAPI.signOut()" title="Sign Out">
@@ -56,17 +76,17 @@
     <aside class="chat-sidebar" id="chatSidebar">
         <div class="sidebar-header">
             <div class="sidebar-title">
-                <img src="public/caelum.png" alt="Caelum" class="sidebar-avatar"
+                <img src="public/caelum.png" alt="Caelum" class="sidebar-avatar" id="sidebarAvatar"
                      style="width:38px;height:38px;max-width:38px;max-height:38px;object-fit:cover;border-radius:50%;flex-shrink:0;"
                      onerror="this.outerHTML='<span style=\'font-size:1.2rem\'>🌌</span>'">
                 <div>
-                    <div class="sidebar-name">Caelum</div>
-                    <div class="sidebar-role">Chief Advisor</div>
+                    <div class="sidebar-name" id="sidebarName">Caelum</div>
+                    <div class="sidebar-role" id="sidebarRole">Chief Advisor</div>
                 </div>
             </div>
             <div class="sidebar-controls">
                 <!-- Minutes icon — opens artifact panel -->
-                <button class="btn-minutes" onclick="openMinutesArtifact()" title="View latest minutes">📋</button>
+                <button class="btn-minutes" id="btnMinutes" onclick="openMinutesArtifact()" title="View latest minutes">📋</button>
                 <!-- New session -->
                 <button class="btn-new-session" onclick="newSession()" title="New Session">✦</button>
                 <!-- Minimize — keep session, hide panel -->
