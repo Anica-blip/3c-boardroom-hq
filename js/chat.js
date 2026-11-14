@@ -100,10 +100,6 @@ function switchAgent(key) {
     document.getElementById('sidebarRole').textContent = agent.role;
     document.getElementById('chatInput').placeholder   = agent.placeholder;
 
-    // Minutes belong to Caelum's boardroom only
-    var minutesBtn = document.getElementById('btnMinutes');
-    if (minutesBtn) minutesBtn.style.display = (key === 'caelum') ? '' : 'none';
-
     // Restore this agent's saved chat, or start fresh
     var saved = agentState[key];
     if (saved) {
@@ -379,23 +375,29 @@ function downloadArtifact() {
     URL.revokeObjectURL(url);
 }
 
-// MINUTES — fetches from Worker, opens in artifact panel
+// REPORT - opens the artifact panel. Every agent has one.
+// Caelum fetches the latest report from the Worker; Jan and Casey are skeletons for now.
 async function openMinutesArtifact() {
-    openArtifactPanel('Loading…', '*Fetching latest boardroom minutes...*');
+    var agent = AGENTS[currentAgent];
 
-    var title = 'Boardroom Minutes';
+    if (!agent.connected) {
+        openArtifactPanel(agent.name + ' — Report',
+            '*' + agent.name + ' is not connected yet — reports will open here once connected.*');
+        return;
+    }
+
+    openArtifactPanel('Loading…', '*Fetching latest report...*');
+
+    var title = 'Report';
 
     if (latestMinutesMeta) {
-        var date = new Date(latestMinutesMeta.session_date).toLocaleDateString('en-GB', {
-            day: 'numeric', month: 'long', year: 'numeric'
-        });
         title = 'Session ' + latestMinutesMeta.session_number + ' — ' + latestMinutesMeta.title;
     }
 
     try {
         var response = await fetch(WORKER_URL + '/minutes/latest', { headers: await workerHeaders() });
         if (response.status === 401 || response.status === 403) {
-            openArtifactPanel('Boardroom Minutes', '*' + workerAuthMessage(response.status) + '*');
+            openArtifactPanel('Report', '*' + workerAuthMessage(response.status) + '*');
             return;
         }
         var data     = await response.json();
@@ -403,10 +405,10 @@ async function openMinutesArtifact() {
             openArtifactPanel(title, data.content);
         } else {
             openArtifactPanel(title,
-                '*No minutes yet. Add your first .md file to boardroom/minutes/ in R2.*');
+                '*No report yet. Add your first .md file to boardroom/minutes/ in R2.*');
         }
     } catch (err) {
-        openArtifactPanel('Boardroom Minutes',
-            '*Worker not deployed yet — minutes unavailable.*');
+        openArtifactPanel('Report',
+            '*Worker not deployed yet — report unavailable.*');
     }
 }
