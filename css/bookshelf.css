@@ -204,3 +204,9 @@
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .shelf-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Portrait avatar (Caelum): show the whole picture inside the circle */
+.office-box .office-avatar.office-avatar-fit {
+    object-fit: contain;
+    background: rgba(var(--rgb), 0.3);
+}
