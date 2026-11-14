@@ -138,3 +138,37 @@
     background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
     border-radius: var(--radius-sm);
 }
+
+/* ── OFFICE SHELF BOXES (placeholders) ─────────────────────────────────────── */
+/* Name stays hidden until the mouse is over the box */
+.office-box .office-box-name {
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+.office-box:hover .office-box-name,
+.office-box:focus-visible .office-box-name { opacity: 1; }
+
+.office-box .folder-body svg {
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.35));
+}
+
+.office-box .folder-spine-label { text-align: center; width: 100%; }
+
+/* Toast shown when a placeholder box is pressed */
+.shelf-toast {
+    position: fixed;
+    top: calc(var(--header-h) + var(--watermark-h) + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    background: rgba(15, 10, 40, 0.92);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    padding: 0.55rem 1rem;
+    z-index: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.shelf-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
