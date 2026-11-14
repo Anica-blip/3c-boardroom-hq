@@ -5,6 +5,25 @@ var conversationHistory = [];
 var isStreaming         = false;
 var latestMinutesMeta   = null;
 
+// AGENTS - one chat sidebar, one config per agent. Caelum is live.
+// Jan and Casey are skeletons (connected: false) until their brains are set up.
+var AGENTS = {
+    caelum: {
+        name: 'Caelum', role: 'Chief Advisor', avatar: 'public/caelum.png', fallback: '🌌',
+        placeholder: 'Brief Caelum...', connected: true
+    },
+    jan: {
+        name: 'Jan', role: 'Content & Brand Assistant', avatar: 'public/jan.png', fallback: '✍️',
+        placeholder: 'Brief Jan...', connected: false
+    },
+    casey: {
+        name: 'Casey', role: 'Creative Direction', avatar: 'public/casey.png', fallback: '🎬',
+        placeholder: 'Brief Casey...', connected: false
+    }
+};
+var currentAgent = 'caelum';
+var agentState   = {};   // saved chat per agent while another agent is open
+
 // WORKER ACCESS - every call to the Worker carries the signed-in user's Supabase token
 async function workerHeaders(extra) {
     var headers = Object.assign({}, extra || {});
@@ -31,9 +50,82 @@ function toggleSidebar() {
     } else {
         sidebar.classList.add('open');
         document.getElementById('sidebarOverlay').classList.add('active');
-        if (!currentSessionId) newSession();
+        if (AGENTS[currentAgent].connected && !currentSessionId) newSession();
         document.getElementById('chatInput').focus();
     }
+}
+
+// OPEN AGENT CHAT - dock buttons. Same agent while open = close.
+function openAgentChat(key) {
+    if (!AGENTS[key] || isStreaming) return;
+    var sidebar = document.getElementById('chatSidebar');
+    if (sidebar.classList.contains('open') && key === currentAgent) {
+        minimizeSidebar();
+        return;
+    }
+    if (key !== currentAgent) switchAgent(key);
+    if (!sidebar.classList.contains('open')) toggleSidebar();
+}
+
+function switchAgent(key) {
+    var chatMessages = document.getElementById('chatMessages');
+    var sessionLabel = document.getElementById('sessionLabel');
+
+    // Save the chat of the agent we are leaving
+    agentState[currentAgent] = {
+        sessionId: currentSessionId,
+        history:   conversationHistory,
+        html:      chatMessages.innerHTML,
+        label:     sessionLabel ? sessionLabel.textContent : ''
+    };
+
+    currentAgent = key;
+    var agent = AGENTS[key];
+
+    // Header: avatar, name, role
+    var avatar = document.getElementById('sidebarAvatar');
+    if (avatar && avatar.tagName === 'IMG') {
+        avatar.src = agent.avatar;
+        avatar.alt = agent.name;
+    } else if (avatar) {
+        var img = document.createElement('img');
+        img.id        = 'sidebarAvatar';
+        img.className = 'sidebar-avatar';
+        img.src = agent.avatar;
+        img.alt = agent.name;
+        img.style.cssText = 'width:38px;height:38px;max-width:38px;max-height:38px;object-fit:cover;border-radius:50%;flex-shrink:0;';
+        avatar.replaceWith(img);
+    }
+    document.getElementById('sidebarName').textContent = agent.name;
+    document.getElementById('sidebarRole').textContent = agent.role;
+    document.getElementById('chatInput').placeholder   = agent.placeholder;
+
+    // Minutes belong to Caelum's boardroom only
+    var minutesBtn = document.getElementById('btnMinutes');
+    if (minutesBtn) minutesBtn.style.display = (key === 'caelum') ? '' : 'none';
+
+    // Restore this agent's saved chat, or start fresh
+    var saved = agentState[key];
+    if (saved) {
+        currentSessionId    = saved.sessionId;
+        conversationHistory = saved.history;
+        chatMessages.innerHTML = saved.html;
+        if (sessionLabel) sessionLabel.textContent = saved.label;
+        scrollToBottom();
+    } else {
+        currentSessionId    = null;
+        conversationHistory = [];
+        chatMessages.innerHTML = welcomeHtml(key);
+        if (sessionLabel) sessionLabel.textContent = agent.connected ? 'No active session' : 'Skeleton — not connected yet';
+    }
+}
+
+function welcomeHtml(key) {
+    return '<div class="welcome-message">' +
+        '<p>Hey Chef. I\'m here.</p>' +
+        '<p>Ready when you are — what are we working on today?</p>' +
+        '<p class="caelum-sign">— ' + AGENTS[key].name + '</p>' +
+        '</div>';
 }
 
 // MINIMIZE - hides panel, session stays alive
@@ -44,6 +136,13 @@ function minimizeSidebar() {
 
 // SESSION MANAGEMENT
 async function newSession() {
+    // Skeleton agents have no session yet - just clear the chat
+    if (!AGENTS[currentAgent].connected) {
+        conversationHistory = [];
+        document.getElementById('chatMessages').innerHTML = welcomeHtml(currentAgent);
+        return;
+    }
+
     var today   = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     var session = await supabaseAPI.createSession('Session — ' + today);
     if (!session) return;
@@ -58,12 +157,7 @@ async function newSession() {
 
     var chatMessages = document.getElementById('chatMessages');
     if (chatMessages) {
-        chatMessages.innerHTML =
-            '<div class="welcome-message">' +
-            '<p>Hey Chef. I\'m here.</p>' +
-            '<p>Ready when you are — what are we working on today?</p>' +
-            '<p class="caelum-sign">— Caelum</p>' +
-            '</div>';
+        chatMessages.innerHTML = welcomeHtml(currentAgent);
     }
 }
 
@@ -74,6 +168,14 @@ async function sendMessage() {
     var input   = document.getElementById('chatInput');
     var content = input.value.trim();
     if (!content) return;
+
+    // Skeleton agent: show the message, answer locally, no Worker call, nothing saved
+    if (!AGENTS[currentAgent].connected) {
+        input.value = '';
+        appendMessage('user', content);
+        appendMessage('assistant', AGENTS[currentAgent].name + ' is not connected yet. This chat is the skeleton — the brain gets connected later.');
+        return;
+    }
 
     if (!currentSessionId) await newSession();
 
@@ -199,7 +301,7 @@ function appendMessage(role, content) {
 
     var roleDiv = document.createElement('div');
     roleDiv.className = 'message-role';
-    roleDiv.textContent = role === 'user' ? 'Chef Anica' : 'Caelum';
+    roleDiv.textContent = role === 'user' ? 'Chef Anica' : AGENTS[currentAgent].name;
 
     var bubble = document.createElement('div');
     bubble.className = 'message-bubble';
