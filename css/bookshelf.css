@@ -139,20 +139,52 @@
     border-radius: var(--radius-sm);
 }
 
-/* ── OFFICE SHELF BOXES (placeholders) ─────────────────────────────────────── */
-/* Name stays hidden until the mouse is over the box */
-.office-box .office-box-name {
-    opacity: 0;
-    transition: opacity 0.18s ease;
+/* ── OFFICE SHELF BOXES (placeholders) — glass, neon per agent ─────────────── */
+/* Each box sets --neon (hex) and --rgb inline from OFFICE_SHELF */
+.office-box {
+    background: rgba(var(--rgb), 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(var(--rgb), 0.5);
+    box-shadow: 0 0 10px rgba(var(--rgb), 0.22), inset 0 0 14px rgba(var(--rgb), 0.08);
 }
-.office-box:hover .office-box-name,
-.office-box:focus-visible .office-box-name { opacity: 1; }
-
-.office-box .folder-body svg {
-    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.35));
+.office-box:hover {
+    border-color: rgba(var(--rgb), 0.9);
+    box-shadow: 0 6px 18px rgba(var(--rgb), 0.4), inset 0 0 14px rgba(var(--rgb), 0.14);
 }
 
-.office-box .folder-spine-label { text-align: center; width: 100%; }
+.office-box .folder-label-area {
+    background: rgba(var(--rgb), 0.1);
+    border-bottom: 1px solid rgba(var(--rgb), 0.3);
+    align-items: center;
+    justify-content: center;
+}
+
+/* Top text: SOURCE normally, the agent name while the mouse is over the box */
+.office-box .office-label {
+    color: var(--neon);
+    text-align: center;
+    width: 100%;
+    display: block;
+    -webkit-line-clamp: unset;
+}
+.office-box .office-nm { display: none; }
+.office-box:hover .office-src,
+.office-box:focus-visible .office-src { display: none; }
+.office-box:hover .office-nm,
+.office-box:focus-visible .office-nm { display: inline; }
+
+/* Tiny avatar in place of the chat icon */
+.office-box .office-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center top;
+    border: 1px solid rgba(var(--rgb), 0.75);
+    box-shadow: 0 0 8px rgba(var(--rgb), 0.5);
+    display: block;
+}
 
 /* Toast shown when a placeholder box is pressed */
 .shelf-toast {
