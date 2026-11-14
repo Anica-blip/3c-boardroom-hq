@@ -26,7 +26,7 @@ function shelfAuthMessage(status) {
 // Skeleton only. Later each box connects to its shelf in Source Notes:
 // Caelum / Jan / Casey open their own agent folder, Anica opens Source Notes.
 var OFFICE_SHELF = [
-    { key: 'caelum', name: 'Caelum', neon: '#3D7BFF', rgb: '61,123,255',  avatar: 'public/caelum.png', note: "Caelum's folder" },
+    { key: 'caelum', name: 'Caelum', neon: '#3D7BFF', rgb: '61,123,255',  avatar: 'public/caelum.png', fit: true, note: "Caelum's folder" },
     { key: 'jan',    name: 'Jan',    neon: '#22E6A8', rgb: '34,230,168',  avatar: 'public/jan.png',    note: "Jan's Writing Lab folder" },
     { key: 'casey',  name: 'Casey',  neon: '#FFB41F', rgb: '255,180,31',  avatar: 'public/casey.png',  note: "Casey's Stage Lab folder" },
     { key: 'anica',  name: 'Anica',  neon: '#D4A8FF', rgb: '212,168,255', avatar: 'public/anica.png',  note: 'Source Notes' }
@@ -46,7 +46,7 @@ function loadBookshelf() {
             '</span>' +
             '</div>' +
             '<div class="folder-body">' +
-            '<img class="office-avatar" src="' + box.avatar + '" alt="' + box.name + '">' +
+            '<img class="office-avatar' + (box.fit ? ' office-avatar-fit' : '') + '" src="' + box.avatar + '" alt="' + box.name + '">' +
             '</div>' +
             '</div>';
     }).join('');
